@@ -175,24 +175,32 @@ app.post('/api/events',eventUpload.single('eventImage'), (req,res) =>{
 
                 const eventId = this.lastID;
 
-                //Вставляем хобби для события
-                const stmt = db.prepare(
-                    `INSERT INTO event_hobbies (event_id,hobby_id) VALUES (?,?)`
-                );
+                const insertHobbies = async () => {
+                    if (!Array.isArray(selectedHobbies) || selectedHobbies.length === 0) return;
 
-                if (Array.isArray(selectedHobbies) && selectedHobbies.length > 0){
-                    selectedHobbies.forEach(hobbyName => {
-                        db.get(`SELECT id FROM hobbies WHERE name = ?`,[hobbyName], (err,row) =>{
-                            if(row){
-                                stmt.run(eventId,row.id)
-                            }
+                    const stmt = db.prepare(`INSERT INTO event_hobbies (event_id,hobby_id) VALUES (?,?)`);
+
+                    const promises = selectedHobbies.map(hobbyName => {
+                        return new Promise((resolve, reject) => {
+                            db.get(`SELECT id FROM hobbies WHERE name = ?`, [hobbyName], (err, row) => {
+                                if (err) return reject(err);
+                                if (row) {
+                                    stmt.run(eventId, row.id, (err) => {
+                                        if (err) reject(err);
+                                        else resolve();
+                                    });
+                                } else resolve();
+                            });
                         });
                     });
-                }
 
-                stmt.finalize();
+                    await Promise.all(promises);
+                    stmt.finalize();
+                };
 
-                res.json({message: 'Event created',eventId});
+                insertHobbies()
+                    .then(() => res.json({ message: 'Event created', eventId }))
+                    .catch(err => res.status(500).json({ error: err.message }));
             }
         );
     }catch(err){
@@ -247,6 +255,7 @@ app.get('/api/events', (req,res) => {
             hobbies: r.hobbies ? r.hobbies.split(',') : []
         }));
 
+        console.log("🧠 Events before send:", formatted);
         res.json(formatted);
     })
 })

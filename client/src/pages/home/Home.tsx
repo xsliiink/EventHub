@@ -185,7 +185,15 @@ export default function Home(){
                 <div className="events-list">
                     {events.length === 0 && <p>No events found</p>}
                     {events.map(event => 
-                        <EventCard key={event.id} event= {event}/>
+                        <EventCard
+                         key={event.id}
+                        title = {event.name}//
+                        description = {event.description}//
+                        date = {event.date}//
+                        location = {event.location}//
+                        hobbies = {event.hobbies}
+                        image = {event.image}
+                         />
                     )}
                 </div>
                 
