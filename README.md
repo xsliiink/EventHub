@@ -78,19 +78,6 @@ Copy code
 
 ---
 
-## 🧰 API Endpoints (Main)
-
-| Method | Endpoint | Description |
-|---------|-----------|-------------|
-| `POST` | `/api/register` | Register a new user |
-| `POST` | `/api/login` | Login and get JWT |
-| `GET` | `/api/events` | Get events (with filters) |
-| `POST` | `/api/events` | Create new event (with image & hobbies) |
-| `GET` | `/api/hobbies` | Get available hobbies |
-| `GET` | `/api/users` | Get user info / friends |
-
----
-
 ## 🖼️ UI & UX
 
 - Clean and modern interface  
@@ -102,8 +89,6 @@ Copy code
 | Home Page | Event Details |
 |------------|----------------|
 | ![Home Page](./screenshots/home.png) | ![Event Details](./screenshots/event-details.png) |
-
-> Place your screenshots in `frontend/public/screenshots/` or `./screenshots/` and link them like above.
 
 ---
 
