@@ -103,13 +103,19 @@ npm install
 
 ```
 
-### 3. Run the server
-cd client
-npm run dev
-In the seprate cmd:
-cd server
-npx tsx server.ts
+### 3. Run the application
 
+**In the first terminal (Client):**
+```bash
+cd client
+npm install
+npm run dev
+
+**In the first terminal (Client):**
+```bash
+cd server
+npm install
+npx tsx server.ts
 
 
 
