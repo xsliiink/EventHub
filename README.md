@@ -111,8 +111,7 @@ cd client
 npm install
 npm run dev
 
-**In the first terminal (Client):**
-```bash
+In the first terminal (Client):
 cd server
 npm install
 npx tsx server.ts
