@@ -1,11 +1,19 @@
 import { useState } from "react";
 import './register.css';
 
+interface RegisterFormData {
+  username: string;
+  password: string;
+  hobbies: string[];
+  avatar: File | null;
+  bio: string;
+}
+
 export default function RegisterModal() {
   const [step, setStep] = useState(1);
   const [message,setMessage] = useState("");
   const [loading,setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterFormData>({
     username: "",
     password: "",
     hobbies: [],
@@ -54,7 +62,7 @@ export default function RegisterModal() {
             type="text"
             placeholder="Username"
             value={formData.username}
-            onChange={(e) =>
+            onChange={(e : React.ChangeEvent<HTMLInputElement>) =>
               setFormData({ ...formData, username: e.target.value })
             }
           />
@@ -62,7 +70,7 @@ export default function RegisterModal() {
             type="password"
             placeholder="Password"
             value={formData.password}
-            onChange={(e) =>
+            onChange={(e : React.ChangeEvent<HTMLInputElement>) =>
               setFormData({ ...formData, password: e.target.value })
             }
           />
@@ -78,7 +86,7 @@ export default function RegisterModal() {
               <input
                 type="checkbox"
                 checked={formData.hobbies.includes(hobby)}//если выбранное хобби уже есть в массиве formData.hobbies,чекбокс будет отмечен
-                onChange={(e) => {
+                onChange={(e : React.ChangeEvent<HTMLInputElement>) => {
                   if (e.target.checked) {
                     setFormData({
                       ...formData,
@@ -105,9 +113,10 @@ export default function RegisterModal() {
           <h2>Step 3: Upload avatar</h2>
           <input
             type="file"
-            onChange={(e) =>
-              setFormData({ ...formData, avatar: e.target.files[0] })
-            }
+            onChange={(e : React.ChangeEvent<HTMLInputElement>) =>{
+              const file = e.target.files ? e.target.files[0] : null;
+              setFormData({ ...formData, avatar: file })
+            }}
           />
           <button onClick={prev}>Back</button>
           <button onClick={next}>Next</button>
@@ -120,7 +129,7 @@ export default function RegisterModal() {
           <textarea
             placeholder="Tell us about yourself"
             value={formData.bio}
-            onChange={(e) =>
+            onChange={(e : React.ChangeEvent<HTMLTextAreaElement>) =>
               setFormData({ ...formData, bio: e.target.value })
             }
           />

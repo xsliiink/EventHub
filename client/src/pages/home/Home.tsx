@@ -3,13 +3,26 @@ import './Home.css';
 import {useEffect,useState} from 'react';
 import {AiOutlinePlus} from 'react-icons/ai';
 import EventCard from '../../components/EventCard';
+import type { SocialEvent, Hobby } from '../../../../shared/types';
 
+interface EventFormData{
+    name: string;
+    description: string;
+    selectedHobbies : string[];
+    eventImage : File | null;
+    date : string;
+    location: string;
+    isCreatorEvent : boolean;
+}
 
 export default function Home(){
     const [showModal,setShowModal] = useState(false);
     const [step,setStep] = useState(1);
-    const [hobbies,setHobbies] = useState([]);
-    const [formData,setFormData] = useState({
+    const [hobbies,setHobbies] = useState<Hobby[]>([]);
+    const [location,setLocation] = useState('Dundalk');
+    const [events,setEvents] = useState<SocialEvent[]>([]);
+    const [allHobbies,setAllHobbies] = useState<Hobby[]>([]);
+    const [formData,setFormData] = useState<EventFormData>({
         name: '',
         description: '',
         selectedHobbies : [],
@@ -18,12 +31,6 @@ export default function Home(){
         location: '',
         isCreatorEvent : false
     });
-
-    const [location,setLocation] = useState('Dundalk');
-    const [selectedHobbies,setSelectedHobbies] = useState([]);
-    const [officialOnly,setOfficialOnly] = useState(false);
-    const [events,setEvents] = useState([]);
-    const [allHobbies,setAllHobbies] = useState([]);
 
     useEffect(() => {
         fetch('/api/hobbies')
@@ -47,10 +54,7 @@ export default function Home(){
 
     console.log("Current hobbies state:", hobbies);
 
-    const next = () => setStep(step + 1);
-    const prev = () => setStep(step - 1);
-
-    const handleHobbyChange = (hobbyName) => {
+    const handleHobbyChange = (hobbyName : string) => {
         setFormData(prev => {
             
             const isSelected = prev.selectedHobbies.includes(hobbyName);//вернет true если хобби пристуствует в нашем массиве или false если нет
@@ -72,7 +76,7 @@ export default function Home(){
             data.append('description',formData.description);
             data.append('date',formData.date);
             data.append('location',formData.location);
-            data.append('isCreatorEvent',formData.isCreatorEvent);
+            data.append('isCreatorEvent',String(formData.isCreatorEvent));
 
             if(formData.eventImage){
                 data.append('eventImage',formData.eventImage);
@@ -140,9 +144,9 @@ export default function Home(){
                     <Link to = "/" className='logo-text'>  🚀 MySocialApp</Link>
                 </div>
                 <nav className='nav'>
-                    <Link className='nav-link'>Map</Link>
-                    <Link className='nav-link'>Function2</Link>
-                    <Link className='nav-link'>Function3</Link>
+                    <Link to= '/' className='nav-link'>Map</Link>
+                    <Link to= '/' className='nav-link'>Function2</Link>
+                    <Link to= '/' className='nav-link'>Function3</Link>
                 </nav>
             </div>
 
@@ -158,24 +162,7 @@ export default function Home(){
                      onChange={(e) => setLocation(e.target.value)}
                      />
 
-                     {/* <select 
-                        value={selectedHobbies}
-                        onChange={(e) => setSelectedHobbies(e.target.value)}
-                     >
-                        <option value="">AllHobbies</option>
-                        {allHobbies.map(h => (
-                            <option key = {h.id} value={h.name}>{h.name}</option>
-                        ))}
-                     </select>
-
-                     <label >
-                        <input
-                         type="checkbox"
-                         checked = {officialOnly}
-                         onChange={() => setOfficialOnly(!officialOnly)} 
-                         />
-                         Official Only
-                     </label> */}
+                     {/* You can add more filters here in the future */}
 
                      <button onClick={loadEvents}>Apply Filters</button>
                 </div>
@@ -187,7 +174,7 @@ export default function Home(){
                     {events.map(event => 
                         <EventCard
                          key={event.id}
-                        title = {event.name}//
+                        title = {event.title}//
                         description = {event.description}//
                         date = {event.date}//
                         location = {event.location}//
@@ -215,14 +202,14 @@ export default function Home(){
                                     type="text"
                                     placeholder='Event name'
                                     value={formData.name}
-                                    onChange={(e) => 
+                                    onChange={(e : React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => 
                                         setFormData({...formData,name: e.target.value})
                                     }
                                     />
                                     <textarea
                                     placeholder='Description'
                                     value={formData.description}
-                                    onChange={(e) =>
+                                    onChange={(e : React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                                         setFormData({...formData,description: e.target.value})
                                     }
                                     />
@@ -255,7 +242,10 @@ export default function Home(){
                                 <div className='step'>
                                     <input 
                                     type="file" 
-                                    onChange={(e) => setFormData({...formData,eventImage: e.target.files[0]})}
+                                    onChange={(e : React.ChangeEvent<HTMLInputElement>) => {
+                                        const file = e.target.files ? e.target.files[0] : null;
+                                        setFormData({...formData,eventImage: file})
+                                    }}
                                     />
                                     <button onClick={() => setStep (step - 1)}>Back</button>
                                     <button onClick={() => setStep (step + 1)}>Next</button>
@@ -269,13 +259,17 @@ export default function Home(){
                                     <input 
                                     type="date" 
                                     value={formData.date}
-                                    onChange={(e) => setFormData({...formData,date : e.target.value})}
+                                    onChange={(e : React.ChangeEvent<HTMLInputElement>) =>
+                                         setFormData({...formData,date : e.target.value})
+                                        }
                                     />
                                     <input 
                                     type="text" 
                                     placeholder='Location'
                                     value={formData.location}
-                                    onChange={(e) => setFormData({...formData,location: e.target.value})}
+                                    onChange={(e : React.ChangeEvent<HTMLInputElement>) => 
+                                        setFormData({...formData,location: e.target.value})
+                                        }
                                     />
                                     <button onClick={() => setStep(step - 1)}>Back</button>
                                     <button onClick={eventCreate}>Finish</button>

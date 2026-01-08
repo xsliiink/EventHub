@@ -2,6 +2,15 @@ import {useState} from 'react';
 import './Login.css';
 import {useNavigate} from 'react-router-dom';
 
+interface LoginResponse{
+    token : string;
+    user:{
+        id : number;
+        username : string;
+    };
+    error?:string;
+}
+
 export default function Login(){
     const [message,setMessage] = useState('');
     const [username,setUsername] = useState('');
@@ -21,7 +30,7 @@ export default function Login(){
             body: JSON.stringify({username,password}),
             });
 
-            const data = await res.json();
+            const data: LoginResponse = await res.json();
 
             if (res.ok){
                 setMessage('Login Successfull!');
@@ -49,15 +58,15 @@ export default function Login(){
                 type="text"
                 placeholder='Username'
                 value = {username}
-                onChange = {(e) =>{
+                onChange = {(e : React.ChangeEvent<HTMLInputElement>) =>{
                     setUsername(e.target.value);
                 }} 
                 />
                 <input 
-                type="text"
+                type="password"
                 placeholder='Password'
                 value = {password} 
-                onChange = {(e) => {
+                onChange = {(e : React.ChangeEvent<HTMLInputElement>) => {
                     setPassword(e.target.value);
                 }}
                 />
