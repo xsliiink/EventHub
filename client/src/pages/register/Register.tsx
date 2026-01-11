@@ -111,7 +111,9 @@ export default function RegisterModal() {
       {step === 3 && (
         <>
           <h2>Step 3: Upload avatar</h2>
+          <label htmlFor="avatar-upload">Avatar Upload</label>
           <input
+            id="avatar-upload"
             type="file"
             onChange={(e : React.ChangeEvent<HTMLInputElement>) =>{
               const file = e.target.files ? e.target.files[0] : null;
@@ -121,6 +123,7 @@ export default function RegisterModal() {
           <button onClick={prev}>Back</button>
           <button onClick={next}>Next</button>
         </>
+        
       )}
 
       {step === 4 && (

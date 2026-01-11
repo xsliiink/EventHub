@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "ESNext",
+    "jsx" : "react-jsx",
     "module": "NodeNext",        // Важно для корректной работы импортов
     "moduleResolution": "NodeNext",
     "outDir": "./dist",
