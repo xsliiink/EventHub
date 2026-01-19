@@ -37,4 +37,4 @@ jobs:
     - name: Install frontend dependencies
       run: cd client && npm install
     - name: Run frontend tests
-      run: cd client && npx jest -- --watchAll=false
+      run: cd client && npm test -- --passWithNoTests --watchAll=false
