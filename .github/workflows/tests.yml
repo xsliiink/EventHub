@@ -1,0 +1,40 @@
+name: Full Stack CI
+
+on:
+  push:
+    branches: [ "main", "feat/ci-pipeline" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # Работа для бэкенда
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js 18.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+        cache: 'npm'
+        cache-dependency-path: server/package-lock.json
+    - name: Install backend dependencies
+      run: cd server && npm install
+    - name: Run backend tests
+      run: cd server && npx jest --runInBand
+
+  # Работа для фронтенда
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js 18.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+        cache: 'npm'
+        cache-dependency-path: client/package-lock.json # Путь к фронту
+    - name: Install frontend dependencies
+      run: cd client && npm install
+    - name: Run frontend tests
+      run: cd client && npx jest -- --watchAll=false
