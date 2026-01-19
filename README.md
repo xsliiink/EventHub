@@ -22,6 +22,7 @@ Users can create their own events, attach images, select hobbies, and browse off
 
 ### 🧩 Backend
 - **Node.js + Express** — backend logic
+- **Jest + Supertest** — automated integration testing
 - **Multer** — image uploads (events & avatars)
 - **SQLite3** — lightweight database
 - **bcrypt** — password hashing
@@ -54,29 +55,39 @@ Users can create their own events, attach images, select hobbies, and browse off
 ✅ Component-based architecture (`EventCard`, `Home`, `EventModal`, etc.)  
 ✅ Smooth page routing (Home, Profile, Friends)
 
+## 🧪 Testing
+
+The project is covered by automated integration tests to ensure API stability and correct data flow.
+
+- **Tools:** Jest, Supertest
+- **Coverage:** Auth (Register/Login), Event management, Hobby associations.
+- **Data Safety:** Uses a separate test database and sequential execution (`--runInBand`).
+
+Run backend tests:
+```bash
+cd server && npx jest --runInBand
+```
 ---
 
 ## 🧠 Project Architecture
 
-project/
-├── backend/
-│ ├── server.js # Express entry point
-│ ├── db.js # SQLite initialization
-│ ├── routes/ # API routes
-│ ├── middleware/ # JWT / Multer middlewares
-│ └── uploads/ # Stored images
-│
-└── frontend/
-├── src/
-│ ├── components/ # UI components (EventCard, Navbar, etc.)
-│ ├── pages/ # Pages (Home, Profile, Login, Register)
-│ ├── hooks/ # Custom hooks
-│ ├── assets/ # Icons, styles
-│ └── App.tsx
-└── package.json
-
+```text
+📁 Project Structure
+├── 📱 client (Frontend)
+│   ├── src
+│   │   ├── components   # Reusable UI components
+│   │   ├── pages        # App views (Home, Profile, etc.)
+│   │   └── App.tsx      # Main logic & routing
+│   └── vite.config.ts
+├── ⚙️ server (Backend)
+│   ├── app.ts           # Express & API logic
+│   ├── db.ts            # SQLite connection
+│   ├── middleware       # JWT & Auth logic
+│   ├── tests            # Jest integration tests
+│   └── uploads          # User images (Avatars/Events)
+├── 🖼️ screenshots       # UI previews
+└── 📄 package.json
 ```
-
 ---
 
 ## 🖼️ UI & UX
@@ -101,7 +112,12 @@ cd backend && npm install
 cd ../frontend && npm install
 
 # 2. Run backend and frontend
-cd backend && npm start
+cd server && npm start
+cd ../client && npm run dev
+App will be available at:
+📍 Frontend → http://localhost:5173
+📍 Backend → http://localhost:5000
+
 cd ../frontend && npm run dev
 App will be available at:
 📍 Frontend → http://localhost:5173
