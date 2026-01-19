@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import "./db";
 import { off } from 'node:cluster';
+import { authenticateToken } from './middleware/auth.middleware';
 
 //creating interface for user JWT data
 interface TokenPayload {
@@ -78,7 +79,11 @@ const eventUpload = multer({dest: 'uploads/events'});
 const port = 3007;
 const { Database } = sqlite3;
 export const db = new Database('./database.db');
-const JWT_SECRET = process.env.JWT_SECRET as string;
+const JWT_SECRET: string  = process.env.JWT_SECRET || 'fallback_test_secret';
+
+if (process.env.NODE_ENV === 'production' && !JWT_SECRET) {
+    throw new Error('FATAL ERROR: JWT_SECRET is not defined in .env file');
+}
 
 app.use(cors());
 app.use(express.json());
@@ -98,8 +103,10 @@ app.post("/api/register", upload.single("avatar"), async (req : Request<{},{},Re
         `INSERT INTO users (username,password,bio,avatar) VALUES (?,?,?,?)`,
         [username,hashedPassword,bio,avatar],
         function(this: sqlite3.RunResult,err: Error | null){
-            if (err) return res.status(400).json({error : err.message});
-
+            if (err){
+                console.error("!!! SQLITE ERROR IN REGISTER:", err.message)
+                return res.status(400).json({error : err.message});
+            }
             const userId = this.lastID;
 
             if(!hobbies.length){
@@ -191,7 +198,7 @@ app.post("/api/login", (req: Request<{},{},LoginBody>,res : Response) => {
     });
 });
 
-app.post('/api/events',eventUpload.single('eventImage'), async (req: AuthRequest,res: Response) =>{
+app.post('/api/events',authenticateToken,eventUpload.single('eventImage'), async (req: AuthRequest,res: Response) =>{
 
     console.log('req.body:', req.body);       // что пришло в body
     console.log('req.file:', req.file);       // что пришло в файле
@@ -203,8 +210,13 @@ app.post('/api/events',eventUpload.single('eventImage'), async (req: AuthRequest
         const selectedHobbies = Array.isArray(rawHobbies) ? rawHobbies : [rawHobbies];
 
         const eventImage = req.file ? req.file.filename : null;
-        const creator_id = req.user?.id || null;//проверка токена и юзера
+
+        const creator_id = req.user?.id;//проверка токена и юзера
         const official = 0;
+
+        if (!req.user) {
+            return res.status(401).json({ error: 'Unauthorized: You must be logged in' });
+        }
 
         if(!name || !description || !date){
             return res.status(400).json({error:'Required fields are missing'});
@@ -276,7 +288,7 @@ app.get('/api/events', (req : Request<{},{},{},EventsQuery>,res: Response) => {
         WHERE 1 = 1
     `;
 
-    const params: any[] =[];
+    const params: (string | number)[] = [];
 
     if(location){
         query += ` AND e.location = ?`;

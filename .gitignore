@@ -3,3 +3,6 @@ dist/
 database.db
 .env
 uploads/
+server/tests/*.db
+server/tests/uploads/
+server/uploads/

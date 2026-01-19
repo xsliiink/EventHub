@@ -30,7 +30,7 @@ describe('Auth API',() =>{
             .field('username', username)
             .field('password','secret123')
             .field('bio','Hello I am a test user')
-            .field('hobbies',JSON.stringify(['Sports','Music']))
+            .field('hobbies',JSON.stringify(['Music']))
             .attach('avatar',testImagePath);
 
         expect(response.status).toBe(200);
@@ -53,8 +53,16 @@ describe('Auth API',() =>{
 
     afterAll(() => {
         const testImagePath = path.join(__dirname, 'test-avatar.png');
+        const testUploadsPath = path.join(__dirname, 'uploads');
+
+        //deleting test avatar file
         if (fs.existsSync(testImagePath)) {
             fs.unlinkSync(testImagePath); // Deleting the file after all tests
+        }
+
+        //deleting uploads folder
+        if (fs.existsSync(testUploadsPath)) {
+            fs.rmSync(testUploadsPath, { recursive: true, force: true });
         }
     });
 })

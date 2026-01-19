@@ -71,6 +71,7 @@ export default function Home(){
 
     const eventCreate = async() => {
         try{
+            const token = localStorage.getItem('token');
             const data = new FormData();
             data.append('name',formData.name);
             data.append('description',formData.description);
@@ -91,6 +92,9 @@ export default function Home(){
 
             const res = await fetch ('/api/events',{
                 method: 'POST',
+                headers:{
+                    'Authorization' : `Bearer ${token}`
+                },
                 body: data
             });
 
