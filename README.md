@@ -69,6 +69,7 @@ cd server && npx jest --runInBand
 
 ## 🧠 Project Architecture
 
+```text
 📁 Project Structure
 ├── 📱 client (Frontend)
 │   ├── src
