@@ -1,6 +1,6 @@
 import {Link} from 'react-router-dom';
 import './Home.css';
-import {useEffect,useState} from 'react';
+import {useCallback, useEffect,useState} from 'react';
 import {AiOutlinePlus} from 'react-icons/ai';
 import EventCard from '../../components/EventCard';
 import type { SocialEvent, Hobby } from '../../../../shared/types';
@@ -21,7 +21,6 @@ export default function Home(){
     const [hobbies,setHobbies] = useState<Hobby[]>([]);
     const [location,setLocation] = useState('Dundalk');
     const [events,setEvents] = useState<SocialEvent[]>([]);
-    const [allHobbies,setAllHobbies] = useState<Hobby[]>([]);
     const [formData,setFormData] = useState<EventFormData>({
         name: '',
         description: '',
@@ -32,14 +31,8 @@ export default function Home(){
         isCreatorEvent : false
     });
 
-    useEffect(() => {
-        fetch('/api/hobbies')
-        .then(res => res.json())
-        .then((data => setAllHobbies(data)));
-    },[]);
-
     useEffect(() =>{
-        fetch('http://localhost:3007/api/hobbies')
+        fetch('/api/hobbies')
         .then(res => res.json())
         .then(data => {
             console.log("Hobbies from server:", data);
@@ -48,9 +41,27 @@ export default function Home(){
         .catch(err => console.error('Error loading hobbies', err));
     },[]);
 
+        const loadEvents = useCallback(async () => {
+        try{
+            const params = new URLSearchParams();
+
+            if(location) params.append('location',location);
+
+            const res = await fetch(`/api/events?${params.toString()}`);
+            const data = await res.json();
+
+            console.log("🔥 Events from server:", data);
+
+            setEvents(data);
+        }catch(err){
+            console.error('Error loading events:',err);
+        }
+    },[location])
+
     useEffect(() => {
-        loadEvents(); // подгрузим события при первом рендере
-    }, []);
+        loadEvents();
+    }, [loadEvents]);
+        
 
     console.log("Current hobbies state:", hobbies);
 
@@ -86,7 +97,7 @@ export default function Home(){
             formData.selectedHobbies.forEach(hobby => data.append('selectedHobbies[]',hobby));
 
 
-             for (let pair of data.entries()) {
+             for (const pair of data.entries()) {
                 console.log(pair[0], pair[1]);
             }
 
@@ -122,23 +133,6 @@ export default function Home(){
             alert("Something went wrong");
         }
     };
-
-    const loadEvents = async () => {
-        try{
-            const params = new URLSearchParams();
-
-            if(location) params.append('location',location);
-
-            const res = await fetch(`/api/events?${params.toString()}`);
-            const data = await res.json();
-
-            console.log("🔥 Events from server:", data);
-
-            setEvents(data);
-        }catch(err){
-            console.error('Error loading events:',err);
-        }
-    }
 
     return (
         <div className="main-wrapper">

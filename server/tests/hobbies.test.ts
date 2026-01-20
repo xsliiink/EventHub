@@ -1,6 +1,5 @@
 import request from 'supertest';
 import app from '../app';
-import db from '../db';
 
 describe('/Hobbies API', () =>{
     it('should retrieve the list of hobbies', async() =>{

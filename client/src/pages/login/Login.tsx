@@ -45,6 +45,7 @@ export default function Login(){
             }
         }catch(err){
             setMessage('Server Error.Try again later...');
+            console.error("Login error details:", err);
         }finally{
             setLoading(false);
         }

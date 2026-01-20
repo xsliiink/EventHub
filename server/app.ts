@@ -1,4 +1,4 @@
-import express,{Request,Response,NextFunction} from 'express';
+import express,{Request,Response} from 'express';
 import multer from 'multer';
 import bcrypt from 'bcrypt';
 import sqlite3 from 'sqlite3';
@@ -6,7 +6,6 @@ import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import "./db";
-import { off } from 'node:cluster';
 import { authenticateToken } from './middleware/auth.middleware';
 
 //creating interface for user JWT data
@@ -76,7 +75,6 @@ dotenv.config();
 const app = express();
 const upload = multer({ dest: 'uploads/avatars' });
 const eventUpload = multer({dest: 'uploads/events'});
-const port = 3007;
 const { Database } = sqlite3;
 export const db = new Database('./database.db');
 const JWT_SECRET: string  = process.env.JWT_SECRET || 'fallback_test_secret';
@@ -90,7 +88,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-app.post("/api/register", upload.single("avatar"), async (req : Request<{},{},RegisterBody>, res: Response) => {
+app.post("/api/register", upload.single("avatar"), async (req : Request<Record<string,never>,Record<string,never>,RegisterBody>, res: Response) => {
 
   try{
     const {username,password,bio} = req.body;
@@ -152,7 +150,7 @@ app.post("/api/register", upload.single("avatar"), async (req : Request<{},{},Re
   }
 });
 
-app.post("/api/login", (req: Request<{},{},LoginBody>,res : Response) => {
+app.post("/api/login", (req: Request<Record<string,never>,Record<string,never>,LoginBody>,res : Response) => {
     console.log("Login route hit");
 
     const {username,password} = req.body;
@@ -180,7 +178,7 @@ app.post("/api/login", (req: Request<{},{},LoginBody>,res : Response) => {
         }
 
         const token = jwt.sign(
-            {id:user.id,username: user.username},
+            tokenPayload,
             process.env.JWT_SECRET as string,
             {expiresIn: '1h'}
         );
@@ -198,7 +196,8 @@ app.post("/api/login", (req: Request<{},{},LoginBody>,res : Response) => {
     });
 });
 
-app.post('/api/events',authenticateToken,eventUpload.single('eventImage'), async (req: AuthRequest,res: Response) =>{
+app.post('/api/events',authenticateToken,eventUpload.single('eventImage'), 
+async (req: AuthRequest & {body: EventBody},res: Response) =>{
 
     console.log('req.body:', req.body);       // что пришло в body
     console.log('req.file:', req.file);       // что пришло в файле
@@ -277,7 +276,7 @@ app.get('/api/hobbies',(req,res) => {
     })
 })
 
-app.get('/api/events', (req : Request<{},{},{},EventsQuery>,res: Response) => {
+app.get('/api/events', (req : Request<Record<string,never>,Record<string,never>,Record<string,never>,EventsQuery>,res: Response) => {
     const {location,hobby,official} = req.query;
 
     let query = `

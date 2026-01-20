@@ -2,7 +2,7 @@ name: Full Stack CI
 
 on:
   push:
-    branches: [ "main", "feat/ci-pipeline" ]
+    branches: [ "main", "feat/ci-pipeline" ,"feat/linter"]
   pull_request:
     branches: [ "main" ]
 
@@ -20,6 +20,8 @@ jobs:
         cache-dependency-path: server/package-lock.json
     - name: Install backend dependencies
       run: cd server && npm install
+    - name: Run Backend Linter
+      run: cd server && npx eslint .
     - name: Run backend tests
       run: cd server && npx jest --runInBand
 
@@ -36,5 +38,7 @@ jobs:
         cache-dependency-path: client/package-lock.json # Путь к фронту
     - name: Install frontend dependencies
       run: cd client && npm install
+    - name: Run Frontend Linter
+      run: cd client && npx eslint . --ext .js,.jsx,.ts,.tsx
     - name: Run frontend tests
       run: cd client && npm test -- --passWithNoTests --watchAll=false

@@ -47,6 +47,7 @@ export default function RegisterModal() {
         }
       } catch (err) {
         setMessage("Server error.Try again later");
+        console.error("Registration error details:", err);
       } finally {
         setLoading(false);
       }
