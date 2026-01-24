@@ -3,17 +3,8 @@ import './Home.css';
 import {useCallback, useEffect,useState} from 'react';
 import {AiOutlinePlus} from 'react-icons/ai';
 import EventCard from '../../components/EventCard';
-import type { SocialEvent, Hobby } from '../../../../shared/types';
-
-interface EventFormData{
-    name: string;
-    description: string;
-    selectedHobbies : string[];
-    eventImage : File | null;
-    date : string;
-    location: string;
-    isCreatorEvent : boolean;
-}
+import type { EventFormData,SocialEvent, Hobby } from '../../../../shared/types';
+import { socket } from '../../socket';
 
 export default function Home(){
     const [showModal,setShowModal] = useState(false);
@@ -31,6 +22,7 @@ export default function Home(){
         isCreatorEvent : false
     });
 
+    //hobbies from server
     useEffect(() =>{
         fetch('/api/hobbies')
         .then(res => res.json())
@@ -41,7 +33,22 @@ export default function Home(){
         .catch(err => console.error('Error loading hobbies', err));
     },[]);
 
-        const loadEvents = useCallback(async () => {
+    //socket
+    useEffect(() => {
+        socket.on('event:created',(newEvent: SocialEvent) =>{
+            console.log('New event received via socket:', newEvent);
+
+            //добавляет новое событие в начало массива
+            setEvents(prevEvents => [newEvent, ...prevEvents]);
+        });
+
+        return () => {
+            socket.off('event: created');
+        };
+    },[])
+
+    //loading events
+    const loadEvents = useCallback(async () => {
         try{
             const params = new URLSearchParams();
 

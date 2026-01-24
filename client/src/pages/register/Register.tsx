@@ -33,7 +33,7 @@ export default function RegisterModal() {
     if (formData.avatar) data.append("avatar", formData.avatar);
 
     try {
-        const res = await fetch("http://localhost:3007/api/register", {
+        const res = await fetch("/api/auth/register", {
           method: "POST",
           body: data,
         });

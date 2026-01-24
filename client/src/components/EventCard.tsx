@@ -1,7 +1,5 @@
-import React from 'react';
 import './EventCard.css';
-import type { SocialEvent } from '../../../shared/types'; // Посчитай количество точек, чтобы выйти в корень
- // Посчитай количество точек, чтобы выйти в корень
+import type { SocialEvent } from '../../../shared/types'; 
 
 export default function EventCard({title,description,date,location,hobbies,image}: Partial<SocialEvent>) {
     return(

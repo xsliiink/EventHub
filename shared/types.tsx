@@ -87,3 +87,13 @@ export interface userRow{
 export interface rawHobbies{
     [key: string]: string | string[];
 }
+
+export interface EventFormData{
+    name: string;
+    description: string;
+    selectedHobbies : string[];
+    eventImage : File | null;
+    date : string;
+    location: string;
+    isCreatorEvent : boolean;
+}

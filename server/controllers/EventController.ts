@@ -4,6 +4,7 @@ import sqlite3 from 'sqlite3';
 import { EventBody, hobbyRow,EventRow } from '@shared/types';
 import { AuthRequest } from '../types/index';
 import { EventsQuery } from '@shared/types';
+import {io} from '../server';
 
 export const createEvent = async(req: AuthRequest & {body: EventBody}, res: Response) => {
     try{
@@ -16,6 +17,7 @@ export const createEvent = async(req: AuthRequest & {body: EventBody}, res: Resp
             const eventImage = req.file ? req.file.filename : null;
             const creator_id = req.user?.id;//проверка токена и юзера
             const official = 0;
+            const socketIo = req.app.get('io');
 
             if (!req.user) {
                 return res.status(401).json({ error: 'Unauthorized: You must be logged in' });
@@ -60,7 +62,27 @@ export const createEvent = async(req: AuthRequest & {body: EventBody}, res: Resp
                 }
             }
 
+            const newEventForSocket = {
+                id: eventId,
+                name,
+                description,
+                location,
+                date,
+                image: eventImage,
+                creator_id,
+                official,
+                hobbies :selectedHobbies
+            }
+
+            if (socketIo) {
+                socketIo.emit('event: created', newEventForSocket);
+                console.log("📡 Сокет: Сигнал отправлен для ивента ID:", eventId);
+            } else {
+                console.error("🚨 Сокет: Объект io не найден в req.app");
+            }
             return res.status(200).json({message: 'Event created', eventId});
+
+            
     }catch(err: unknown){
             console.error('Error creating event: ',err);
            if (!res.headersSent) {
@@ -113,8 +135,6 @@ export const getEvents = (req : Request<Record<string,never>,Record<string,never
                 ...r,
                 hobbies: r.hobbies ? r.hobbies.split(',') : []
             }));
-    
-            console.log("🧠 Events before send:", formatted);
             res.json(formatted);
         })
 }

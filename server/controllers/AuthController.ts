@@ -62,7 +62,7 @@ export const register = async( req : Request<Record<string,never>,Record<string,
     
       }catch(err){
         const error = err as Error;
-        console.error('Registration error:',error.message);
+        console.error('FULL ERROR:', error);
         res.status(500).json({error: 'Server error'});
       }
 }
