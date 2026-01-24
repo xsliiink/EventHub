@@ -31,11 +31,21 @@ Users can create their own events, attach images, select hobbies, and browse off
 
 ---
 
-* **Modular Architecture:** Refactored the monolithic backend into a clear **Routes & Middlewares** structure.
-* **Type Safety:** Eliminated `any` types across the backend, implementing strict TypeScript interfaces and error handling.
-* **Code Quality (DX):** Integrated **ESLint** and **Prettier** for automated code linting and consistent formatting.
-* **Asynchronous Logic:** Optimized database operations and file uploads using `async/await` and robust error catching.
-* **API Improvements:** Restructured the event creation flow with better validation and file handling (Multer).
+### 🏗 Architecture & Design Patterns
+* **Modular Routing:** Migrated from a monolithic `app.ts` to a decoupled **Routes & Middlewares** architecture. This ensures high maintainability and scalability.
+* **Asynchronous Integrity:** Optimized database interactions by replacing legacy callbacks with modern `async/await` patterns, eliminating potential race conditions in SQLite.
+* **Strict Type Safety:** * Achieved **0% `any` usage** across the backend.
+    * Implemented robust interface definitions and unknown-type narrowing for error handling.
+
+### 🛡 Code Quality & DX (Developer Experience)
+![ESLint](https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white) 
+![Prettier](https://img.shields.io/badge/Prettier-F7B93E?style=for-the-badge&logo=prettier&logoColor=black)
+
+* **Linting & Formatting:** Integrated **ESLint** and **Prettier** to enforce consistent coding standards and catch bugs before they reach production.
+* **Standardized API Contracts:** Unified field naming (e.g., `eventImage`) across the stack to ensure seamless Frontend-Backend communication.
+
+### 📦 Media Handling
+* **Typed Multer Middleware:** Refactored file upload logic into a dedicated middleware with strict validation, ensuring secure and predictable image processing.
 
 ## 🗃️ Database Structure
 
