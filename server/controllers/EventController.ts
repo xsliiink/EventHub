@@ -163,7 +163,7 @@ export const getEvents = (req : Request<Record<string,never>,Record<string,never
 
 export const deleteEvent = async (req: AuthRequest & {params: {id: string}}, res: Response) => {
     try{
-        const id = req.params;
+        const { id } = req.params;
         const userId = req.user?.id;
 
         const event = await new Promise<EventRow | undefined>((resolve,reject) => {

@@ -7,6 +7,11 @@ import type { EventFormData,SocialEvent, Hobby } from '../../../../shared/types'
 import { socket } from '../../socket';
 
 export default function Home(){
+
+    const userString = localStorage.getItem('user');
+    const currentUser = userString ? JSON.parse(userString) : null;
+    const currentUserId = currentUser ? currentUser.id : null;
+
     const [showModal,setShowModal] = useState(false);
     const [step,setStep] = useState(1);
     const [hobbies,setHobbies] = useState<Hobby[]>([]);
@@ -35,16 +40,20 @@ export default function Home(){
 
     //socket
     useEffect(() => {
-        console.log("🔌 Home.tsx: Слушатель сокета инициализирован");
 
         socket.on('event:created', (newEvent: SocialEvent) => {
             setEvents(prev => [newEvent, ...prev]);
         });
 
-        // Добавь это, чтобы увидеть ВСЕ события
+        // Adding this to see all events for debugging
         socket.onAny((event, ...args) => {
             console.log(`🕵️ Любое событие [${event}]:`, args);
         });
+
+        socket.on('event:deleted', (deletedId: number) => {
+        // Filtering the deleted event out of the events list
+        setEvents(prev => prev.filter(event => event.id !== deletedId));
+    });
 
         return () => {
             socket.off('event:created');
@@ -73,9 +82,6 @@ export default function Home(){
     useEffect(() => {
         loadEvents();
     }, [loadEvents]);
-        
-
-    console.log("Current hobbies state:", hobbies);
 
     const handleHobbyChange = (hobbyName : string) => {
         setFormData(prev => {
@@ -146,6 +152,31 @@ export default function Home(){
         }
     };
 
+    const handleDeleteEvent = async (id : number) => {
+        try{
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/events/delete/${id}`,{
+                method : 'DELETE',
+                headers: {
+                    'Authorization' : `Bearer ${token}`
+                }
+            });
+
+            const data = await res.json();
+            if (res.ok){
+                console.log('Event deletion requested', id);
+            }else{
+                alert(data.error || 'Error deleting event');
+            }
+        }catch (err){
+            if (err instanceof Error){
+                console.error('Error deleting event:', err.message);
+            }else{
+                console.error('Unknown error deleting event',err);
+            }
+        }
+    }
+
     return (
         <div className="main-wrapper">
 
@@ -181,17 +212,18 @@ export default function Home(){
 
                 <div className="events-list">
                     {events.length === 0 && <p>No events found</p>}
-                    {events.map(event => 
-                        <EventCard
-                        key={event.id}
-                        title = {event.title}//
-                        description = {event.description}//
-                        date = {event.date}//
-                        location = {event.location}//
-                        hobbies = {event.hobbies}
-                        image = {event.image}
-                        />
-                    )}
+                    {events.map(event => {
+                        if (!event) return null;
+
+                        return (
+                            <EventCard
+                                key = {event.id}
+                                event={event}
+                                onDelete = {handleDeleteEvent}
+                                currentUserId={currentUserId}
+                            />
+                        );
+        })}
                 </div>
                 
                 {/* The floating button */}

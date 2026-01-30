@@ -3,9 +3,15 @@
   gap: 16px;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Чуть мягче тень */
   padding: 16px;
   margin-bottom: 16px;
+  transition: transform 0.2s ease; /* Чтобы карточка "ожила" при наведении */
+  position: relative; /* Для позиционирования кнопки, если захочешь */
+}
+
+.event-card:hover {
+  transform: translateY(-2px); /* Легкий подъем при ховере */
 }
 
 .event-image {
@@ -13,16 +19,61 @@
   height: 150px;
   object-fit: cover;
   border-radius: 12px;
+  flex-shrink: 0; /* Чтобы картинку не сплющило, если текста много */
 }
 
 .event-info {
   flex: 1;
+  min-width: 0; /* Критично для работы text-overflow внутри флекса */
 }
 
 .event-info h3 {
   margin: 0 0 8px;
+  color: #1a1a1a;
+  white-space: nowrap; /* Не дает заголовку переноситься */
+  overflow: hidden; /* Прячет лишнее */
+  text-overflow: ellipsis; /* Рисует три точки (...) */
 }
 
 .event-info p {
   margin: 4px 0;
+  color: #444;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  
+  /* Ограничение описания до 3-х строк */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Стили для той самой кнопки удаления */
+.delete-button {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background-color: #fff0f0;
+  color: #ff4d4f;
+  border: 1px solid #ffccc7;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.delete-button:hover {
+  background-color: #ff4d4f;
+  color: #fff;
+  border-color: #ff4d4f;
+}
+
+/* Адаптив: на мобилках карточка станет вертикальной */
+@media (max-width: 600px) {
+  .event-card {
+    flex-direction: column;
+  }
+  .event-image {
+    width: 100%;
+    height: 200px;
+  }
 }
