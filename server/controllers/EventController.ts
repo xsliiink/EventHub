@@ -1,10 +1,11 @@
 import {Response,Request} from 'express';
 import  db  from '../db';
 import sqlite3 from 'sqlite3';
-import { EventBody, hobbyRow,EventRow } from '@shared/types';
+import { EventBody, hobbyRow,EventRow, SocialEvent } from '@shared/types';
 import { AuthRequest } from '../types/index';
 import { EventsQuery } from '@shared/types';
 import {io} from '../server';
+import { resolve } from 'node:dns';
 
 export const createEvent = async(req: AuthRequest & {body: EventBody}, res: Response) => {
     try{
@@ -27,6 +28,7 @@ export const createEvent = async(req: AuthRequest & {body: EventBody}, res: Resp
                 return res.status(400).json({error:'Required fields are missing'});
             }
             
+            //Inserting event into DB
             const eventId = await new Promise<number>((resolve,reject) => {
                 db.run(
                 `INSERT INTO events (name,description,date,location,image,creator_id,official)
@@ -43,6 +45,7 @@ export const createEvent = async(req: AuthRequest & {body: EventBody}, res: Resp
                 })
             })
 
+            //Linking hobbies to event
             if(selectedHobbies.length > 0){
                 for (const hobbyName of selectedHobbies){
                     await new Promise<void>((resolve,reject) => {
@@ -62,20 +65,41 @@ export const createEvent = async(req: AuthRequest & {body: EventBody}, res: Resp
                 }
             }
 
-            const newEventForSocket = {
-                id: eventId,
-                name,
-                description,
-                location,
-                date,
-                image: eventImage,
-                creator_id,
-                official,
-                hobbies :selectedHobbies
-            }
+            const freshEvent = await  new Promise<SocialEvent>((resolve,reject) => {
+                db.get(`
+                    SELECT
+                        e.id,e.name,e.description,e.date,e.location,e.image,e.creator_id,e.official,
+                        GROUP_CONCAT(h.name) as hobbies
+                    FROM events e
+                    LEFT JOIN event_hobbies eh ON e.id = eh.event_id
+                    LEFT JOIN hobbies h ON eh.hobby_id = h.id
+                    WHERE e.id = ?
+                    GROUP BY e.id
+                    `,[eventId], (err: Error | null, row?: EventRow) => {
+                        if(err){
+                            reject(err);
+                        }else if(!row){
+                            reject(new Error('Event not found after creation'));
+                        }else{
+                            resolve({
+                                id: row.id,
+                                //Mapping name from DB to title for client
+                                title: row.name,
+                                description: row.description,
+                                date: row.date,
+                                location: row.location,
+                                image: row.image || null,
+                                creator_id: row.creator_id,
+                                official: row.official,
+                                //Transforming hobbies from CSV to array
+                                hobbies: typeof row.hobbies === 'string' ? row.hobbies.split(',') : []
+                        });
+                    }
+                })
+            })
 
             if (socketIo) {
-                socketIo.emit('event: created', newEventForSocket);
+                socketIo.emit('event:created', freshEvent);
                 console.log("📡 Сокет: Сигнал отправлен для ивента ID:", eventId);
             } else {
                 console.error("🚨 Сокет: Объект io не найден в req.app");
@@ -91,8 +115,6 @@ export const createEvent = async(req: AuthRequest & {body: EventBody}, res: Resp
         }
     }
 }
-
-           
 
 export const getEvents = (req : Request<Record<string,never>,Record<string,never>,Record<string,never>,EventsQuery>,res: Response) => {
     const {location,hobby,official} = req.query;
@@ -137,4 +159,39 @@ export const getEvents = (req : Request<Record<string,never>,Record<string,never
             }));
             res.json(formatted);
         })
+}
+
+export const deleteEvent = async (req: AuthRequest & {params: {id: string}}, res: Response) => {
+    try{
+        const id = req.params;
+        const userId = req.user?.id;
+
+        const event = await new Promise<EventRow | undefined>((resolve,reject) => {
+            db.get(`SELECT creator_id FROM events WHERE id = ?`,[id], (err: Error | null,row: EventRow) => {
+                if(err) reject(err);
+                else resolve(row);
+            });
+        });
+
+        if(!event) return res.status(404).json({error: 'Event not found'});
+        if (event.creator_id !== userId) return res.status(403).json({error: 'Access denied'});
+
+        await new Promise<void>((resolve,reject) => {
+            db.run(`DELETE FROM events WHERE id = ?`, [id], (err: Error | null) => {
+                if(err) reject(err);
+                else resolve();
+            })
+        });
+
+        const socketIo = req.app.get('io');
+        if(socketIo){
+            //sending only the ID of deleted event
+            socketIo.emit('event:deleted',Number(id));
+            console.log(`Socket:  Event ${id} is deleted`);
+        }
+
+        res.status(200).json({message: 'Event deleted successfully'});
+    }catch(err: unknown){
+        res.status(500).json({error: 'Internal server error'});
+    }
 }

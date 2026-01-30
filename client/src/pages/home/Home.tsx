@@ -35,17 +35,22 @@ export default function Home(){
 
     //socket
     useEffect(() => {
-        socket.on('event:created',(newEvent: SocialEvent) =>{
-            console.log('New event received via socket:', newEvent);
+        console.log("🔌 Home.tsx: Слушатель сокета инициализирован");
 
-            //добавляет новое событие в начало массива
-            setEvents(prevEvents => [newEvent, ...prevEvents]);
+        socket.on('event:created', (newEvent: SocialEvent) => {
+            setEvents(prev => [newEvent, ...prev]);
+        });
+
+        // Добавь это, чтобы увидеть ВСЕ события
+        socket.onAny((event, ...args) => {
+            console.log(`🕵️ Любое событие [${event}]:`, args);
         });
 
         return () => {
-            socket.off('event: created');
+            socket.off('event:created');
+            socket.offAny();
         };
-    },[])
+}, []);
 
     //loading events
     const loadEvents = useCallback(async () => {
@@ -104,7 +109,7 @@ export default function Home(){
             formData.selectedHobbies.forEach(hobby => data.append('selectedHobbies[]',hobby));
 
 
-             for (const pair of data.entries()) {
+            for (const pair of data.entries()) {
                 console.log(pair[0], pair[1]);
             }
 
@@ -161,15 +166,15 @@ export default function Home(){
 
                 <div className='filters'>
                     <input
-                     type="text" 
-                     placeholder='Filter by Location'
-                     value={location}
-                     onChange={(e) => setLocation(e.target.value)}
-                     />
+                    type="text" 
+                    placeholder='Filter by Location'
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    />
 
-                     {/* You can add more filters here in the future */}
+                    {/* You can add more filters here in the future */}
 
-                     <button onClick={loadEvents}>Apply Filters</button>
+                    <button onClick={loadEvents}>Apply Filters</button>
                 </div>
                 
                 {/* Showing the events on a page */}
@@ -178,20 +183,20 @@ export default function Home(){
                     {events.length === 0 && <p>No events found</p>}
                     {events.map(event => 
                         <EventCard
-                         key={event.id}
+                        key={event.id}
                         title = {event.title}//
                         description = {event.description}//
                         date = {event.date}//
                         location = {event.location}//
                         hobbies = {event.hobbies}
                         image = {event.image}
-                         />
+                        />
                     )}
                 </div>
                 
                 {/* The floating button */}
                 <button className='fab' onClick={() => setShowModal(true)}>
-                     <AiOutlinePlus size={28} />
+                    <AiOutlinePlus size={28} />
                 </button>
 
                 {/* Modal Window */}
@@ -232,8 +237,8 @@ export default function Home(){
                                             type="checkbox"
                                             checked ={formData.selectedHobbies.includes(hobby.name)}
                                             onChange={() => handleHobbyChange(hobby.name)}
-                                             />
-                                             {hobby.name}
+                                            />
+                                            {hobby.name}
                                         </label>
                                     ))}
                                     <button onClick={() => setStep(step - 1)}>Back</button>
@@ -265,7 +270,7 @@ export default function Home(){
                                     type="date" 
                                     value={formData.date}
                                     onChange={(e : React.ChangeEvent<HTMLInputElement>) =>
-                                         setFormData({...formData,date : e.target.value})
+                                        setFormData({...formData,date : e.target.value})
                                         }
                                     />
                                     <input 

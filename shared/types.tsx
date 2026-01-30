@@ -6,11 +6,13 @@ export interface User {
     avatar: string | null;
 }
 
+//Hobby as sent to client
 export interface Hobby{
     id: number;
     name: string;
 }
 
+//Event as sent to client
 export interface SocialEvent{
     id: number;
     title: string;
@@ -21,6 +23,11 @@ export interface SocialEvent{
     date: string;
     image: string | null;
     location: string | null;
+}
+//Raw Event data from DB
+export interface EventRow extends Omit<SocialEvent,'hobbies'|'title'>{
+    name: string;
+    hobbies: string | null;
 }
 
 export interface UserHobby{
@@ -52,18 +59,6 @@ export interface EventsQuery{
     official?: string;
 }
 
-export interface EventRow{
-    id: number;
-    name:string;
-    description: string;
-    date: string;
-    location: string;
-    image?: string;
-    creator_id: number;
-    official: number;
-    hobbies: string | null;
-}
-
 export interface RegisterBody{
     username: string;
     password: string;
@@ -88,6 +83,7 @@ export interface rawHobbies{
     [key: string]: string | string[];
 }
 
+// Form data for creating/editing an event on the client side
 export interface EventFormData{
     name: string;
     description: string;
