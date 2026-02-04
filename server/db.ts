@@ -1,6 +1,5 @@
 import sqlite3 from "sqlite3";
 import path from "path";
- import {promisify} from "util";
 
 const isTest = process.env.NODE_ENV ==='test'
 

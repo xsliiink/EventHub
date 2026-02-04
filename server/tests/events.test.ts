@@ -4,7 +4,6 @@ import db from '../db';
 
 describe('/Events API', () =>{
     let token : string;
-    let createdEventId: number;
     const testUser = {
         username: `organizer_${Date.now()}`,
         password: 'testpassword'
@@ -51,8 +50,6 @@ describe('/Events API', () =>{
         expect(res.status).toBe(201);
         expect(res.body).toHaveProperty('eventId');
         expect(typeof res.body.eventId).toBe('number');
-
-        createdEventId = res.body.eventId;
     })
 
     it('should fail to create event with invalid boyd', async() => {
@@ -147,7 +144,7 @@ describe('/Events API', () =>{
          const getRes = await request(app).get('/api/events');
 
         const deletedEvent = getRes.body.find(
-            (e: any) => e.id === eventId
+            (e: { id: number }) => e.id === eventId
         );
 
         expect(deletedEvent).toBeUndefined();

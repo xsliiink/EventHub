@@ -1,14 +1,12 @@
 import {Response,Request} from 'express';
 import  db  from '../db';
-import {dbRun,dbAll,dbGet,dbExec} from '../db';
+import {dbRun,dbGet,dbExec} from '../db';
 import sqlite3 from 'sqlite3';
-import { EventBody, hobbyRow,EventRow, SocialEvent } from '@shared/types';
+import { hobbyRow,EventRow } from '@shared/types';
 import {updateEventSchema,createEventSchema} from '../validation/event'
 import {mapEventRowToSocialEvent} from '../mappers/event.mapper'
 import { AuthRequest } from '../types/index';
 import { EventsQuery } from '@shared/types';
-import {io} from '../server';
-import { resolve } from 'node:dns';
 import { replaceEventImage } from '../services/event.service'
 
 
@@ -183,7 +181,7 @@ export const deleteEvent = async (
 
         res.status(200).json({message: 'Event deleted successfully'});
     }catch(err: unknown){
-        res.status(500).json({error: 'Internal server error'});
+        res.status(500).json({error: 'Internal server error',err});
     }
 }
 
