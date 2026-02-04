@@ -2,8 +2,9 @@
 
 # 🧩 EventHub — Social Event Platform
 
-**EventHub** is a full-stack web application for discovering, creating, and filtering events by hobbies and location.  
-Users can create their own events, attach images, select hobbies, and browse official events nearby.
+**EventHub** is a full-stack web application for discovering, creating, updating and filtering social events by hobbies and location.
+
+Users can create their own events, attach images, select hobbies, edit or delete their events, and browse official or community events in real time.
 
 ---
 
@@ -13,120 +14,156 @@ Users can create their own events, attach images, select hobbies, and browse off
 - **React + TypeScript**
 - **Vite** — fast build & hot reload
 - **TailwindCSS** — modern styling
-- **shadcn/ui + Lucide icons** — prebuilt UI components
-- **Framer Motion** — smooth animations
+- **shadcn/ui + Lucide icons** — UI components
+- **Framer Motion** — animations
 - **React Router** — client-side routing
 - **React Hook Form** — form management
 - **JWT** — authentication
-- **Fetch API** — communication with backend
+- **Fetch API** — backend communication
+- **Socket.io client** — real-time updates
 
 ### 🧩 Backend
-- **Node.js + Express** — backend logic
-- **Jest + Supertest** — automated integration testing
-- **Multer** — image uploads (events & avatars)
+- **Node.js + Express**
+- **TypeScript**
 - **SQLite3** — lightweight database
+- **Multer** — image uploads (events & avatars)
+- **Zod** — runtime validation
 - **bcrypt** — password hashing
-- **jsonwebtoken (JWT)** — user authorization
+- **jsonwebtoken (JWT)** — authorization
+- **Socket.io** — real-time events
+- **Jest + Supertest** — integration testing
 - **CORS + dotenv** — environment configuration
 
 ---
-## 🛠 Architectural Refactoring (Jan 2026)
 
-The project has been upgraded to meet professional development standards:
+## 🛠 Architectural Refactoring
 
-✅ **Modular Routing** — Decoupled monolithic `app.ts` into a clean **Routes & Middlewares** system.  
-✅ **Strict Type Safety** — Removed all `any` types; implemented full TypeScript interfaces for the entire backend.  
-✅ **Async/Await Flow** — Standardized database operations to eliminate race conditions and improve performance.  
-✅ **Code Quality (DX)** — Integrated **ESLint** & **Prettier** for automated linting and consistent formatting.  
-✅ **Standardized API** — Unified API contracts (e.g., `eventImage`) for seamless Frontend-Backend synchronization.
+The project was refactored to follow clean backend architecture and stable API design.
+
+✅ **Modular Routing** — Routes, controllers, services and middlewares are fully separated  
+✅ **Strict Type Safety** — No `any` types, shared frontend/backend contracts  
+✅ **Zod Validation Layer** — All create/update payloads validated server-side  
+✅ **Unified API Contract** — Database fields do not leak to frontend (`name → title`)  
+✅ **Mapper Layer** — Dedicated DB → API mappers for consistent responses  
+✅ **Async/Await DB Flow** — Predictable database operations  
+✅ **Code Quality (DX)** — ESLint & Prettier integration  
 
 ---
 
 ## 🗃️ Database Structure
 
-| Table | Description |
-|--------|--------------|
-| `users` | User information |
-| `hobbies` | List of all hobbies |
-| `events` | Main event data |
-| `event_hobbies` | Many-to-many relation between events and hobbies |
-| `user_hobbies` | User-hobby relations |
-| `friends` | Friend requests and connections |
+|
+ Table 
+|
+ Description 
+|
+|
+------
+|
+------------
+|
+|
+`users`
+|
+ User accounts 
+|
+|
+`hobbies`
+|
+ List of available hobbies 
+|
+|
+`events`
+|
+ Main event data 
+|
+|
+`event_hobbies`
+|
+ Many-to-many relation between events and hobbies 
+|
+|
+`user_hobbies`
+|
+ User hobby preferences 
+|
+|
+`friends`
+|
+ Friend requests and connections 
+|
 
 ---
 
 ## 🚀 Features
 
-✅ User registration and JWT authentication  
+✅ User registration & JWT authentication  
 ✅ Create events with image upload  
+✅ Update events (title, description, date, location, image)  
+✅ Delete events with ownership checks  
 ✅ Attach multiple hobbies per event  
-✅ Filter events by location and hobbies  
+✅ Filter events by location  
 ✅ Browse official & community events  
-✅ Adaptive event cards grid layout  
-✅ Component-based architecture (`EventCard`, `Home`, `EventModal`, etc.)  
-✅ Smooth page routing (Home, Profile, Friends)
+✅ Real-time updates via WebSockets  
+✅ Adaptive event cards grid  
+✅ Component-based UI architecture  
+
+---
 
 ## 🧪 Testing
 
-The project is covered by automated integration tests to ensure API stability and correct data flow.
+Backend is covered with integration tests to ensure API stability.
 
-- **Tools:** Jest, Supertest
-- **Coverage:** Auth (Register/Login), Event management, Hobby associations.
-- **Data Safety:** Uses a separate test database and sequential execution (`--runInBand`).
+- **Tools:** Jest, Supertest  
+- **Coverage:**  
+  - Auth (Register / Login)  
+  - Event create / update / delete  
+  - Authorization & ownership checks  
+  - Validation errors (400 / 401 / 403)  
+- **Isolation:** Separate test database  
+- **Execution:** Sequential (`--runInBand`)
 
 Run backend tests:
 ```bash
 cd server && npx jest --runInBand
-```
----
-
-## 🧠 Project Architecture
-
-```text
+🧠 Project Architecture
+text
 📁 Project Structure
 ├── 📱 client (Frontend)
 │   ├── src
 │   │   ├── components   # Reusable UI components
-│   │   ├── pages        # App views (Home, Profile, etc.)
-│   │   └── App.tsx      # Main logic & routing
+│   │   ├── pages        # Application pages
+│   │   ├── socket.ts    # Socket.io client
+│   │   └── App.tsx      # Routing & app entry
 │   └── vite.config.ts
 ├── ⚙️ server (Backend)
-│   ├── app.ts           # Express & API logic
-│   ├── db.ts            # SQLite connection
-│   ├── middleware       # JWT & Auth logic
-│   ├── tests            # Jest integration tests
-│   └── uploads          # User images (Avatars/Events)
+│   ├── controllers     # Request handlers
+│   ├── services        # Business logic
+│   ├── mappers         # DB → API mapping
+│   ├── validation      # Zod schemas
+│   ├── middleware      # Auth & JWT logic
+│   ├── tests           # Integration tests
+│   ├── uploads         # Images (events & avatars)
+│   └── app.ts
 ├── 🖼️ screenshots       # UI previews
 └── 📄 package.json
-```
----
-
-## 🖼️ UI & UX
-
-- Clean and modern interface  
-- Event cards with images, location, date, and hobbies  
-- Smooth transitions and animations  
-- Mobile responsive design  
-
-**Example UI:**
-| Home Page | Event Details |
-|------------|----------------|
-| ![Home Page](./screenshots/3main.png) | ![Add Event](./screenshots/3add_event.png) |
-
----
-
-## 💾 How to Run Locally
-
-```bash
-# 1. Install dependencies
+🖼️ UI & UX
+Clean and minimal interface
+Event cards with image, date, location and hobbies
+Edit event modal with live image replacement
+Smooth transitions and responsive layout
+Home Page	Add / Edit Event
+Home Page	Add Event
+💾 How to Run Locally
+bash
+# Install dependencies
 cd server && npm install
 cd ../client && npm install
 
-# 2. Run backend and frontend
+# Run backend & frontend
 cd server && npm start
 cd ../client && npm run dev
 App will be available at:
-📍 Frontend → http://localhost:5173
-📍 Backend → http://localhost:3007
 
-
+Frontend: http://localhost:5173
+Backend: http://localhost:3007
