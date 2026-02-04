@@ -52,46 +52,14 @@ The project was refactored to follow clean backend architecture and stable API d
 
 ## 🗃️ Database Structure
 
-|
- Table 
-|
- Description 
-|
-|
-------
-|
-------------
-|
-|
-`users`
-|
- User accounts 
-|
-|
-`hobbies`
-|
- List of available hobbies 
-|
-|
-`events`
-|
- Main event data 
-|
-|
-`event_hobbies`
-|
- Many-to-many relation between events and hobbies 
-|
-|
-`user_hobbies`
-|
- User hobby preferences 
-|
-|
-`friends`
-|
- Friend requests and connections 
-|
+| Table | Description |
+|--------|--------------|
+| `users` | User information |
+| `hobbies` | List of all hobbies |
+| `events` | Main event data |
+| `event_hobbies` | Many-to-many relation between events and hobbies |
+| `user_hobbies` | User-hobby relations |
+| `friends` | Friend requests and connections |
 
 ---
 
@@ -126,44 +94,56 @@ Backend is covered with integration tests to ensure API stability.
 Run backend tests:
 ```bash
 cd server && npx jest --runInBand
-🧠 Project Architecture
-text
+```
+
+---
+
+## 🧠 Project Architecture
+
+```text
 📁 Project Structure
 ├── 📱 client (Frontend)
 │   ├── src
 │   │   ├── components   # Reusable UI components
-│   │   ├── pages        # Application pages
-│   │   ├── socket.ts    # Socket.io client
-│   │   └── App.tsx      # Routing & app entry
+│   │   ├── pages        # App views (Home, Profile, etc.)
+│   │   └── App.tsx      # Main logic & routing
 │   └── vite.config.ts
 ├── ⚙️ server (Backend)
-│   ├── controllers     # Request handlers
-│   ├── services        # Business logic
-│   ├── mappers         # DB → API mapping
-│   ├── validation      # Zod schemas
-│   ├── middleware      # Auth & JWT logic
-│   ├── tests           # Integration tests
-│   ├── uploads         # Images (events & avatars)
-│   └── app.ts
+│   ├── app.ts           # Express & API logic
+│   ├── db.ts            # SQLite connection
+│   ├── middleware       # JWT & Auth logic
+│   ├── tests            # Jest integration tests
+│   └── uploads          # User images (Avatars/Events)
 ├── 🖼️ screenshots       # UI previews
 └── 📄 package.json
-🖼️ UI & UX
-Clean and minimal interface
-Event cards with image, date, location and hobbies
-Edit event modal with live image replacement
-Smooth transitions and responsive layout
-Home Page	Add / Edit Event
-Home Page	Add Event
-💾 How to Run Locally
-bash
-# Install dependencies
+```
+
+---
+
+## 🖼️ UI & UX
+
+- Clean and modern interface  
+- Event cards with images, location, date, and hobbies  
+- Smooth transitions and animations  
+- Mobile responsive design  
+
+**Example UI:**
+| Home Page | Event Details |
+|------------|----------------|
+| ![Home Page](./screenshots/3main.png) | ![Add Event](./screenshots/3add_event.png) |
+
+---
+
+## 💾 How to Run Locally
+
+```bash
+# 1. Install dependencies
 cd server && npm install
 cd ../client && npm install
 
-# Run backend & frontend
-cd server && npm start
+# 2. Run backend and frontend
+cd server && npm run dev
 cd ../client && npm run dev
 App will be available at:
-
-Frontend: http://localhost:5173
-Backend: http://localhost:3007
+📍 Frontend → http://localhost:5173
+📍 Backend → http://localhost:3007
