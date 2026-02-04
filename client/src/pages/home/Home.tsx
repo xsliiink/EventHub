@@ -2,8 +2,9 @@ import {Link} from 'react-router-dom';
 import './Home.css';
 import {useCallback, useEffect,useState} from 'react';
 import {AiOutlinePlus} from 'react-icons/ai';
-import EventCard from '../../components/EventCard';
-import type { EventFormData,SocialEvent, Hobby } from '../../../../shared/types';
+import EventCard from '../../components/EventCard/EventCard';
+import EditEventModal from '../../components/editModal/EditEventModal';
+import type { EventFormData,SocialEvent, Hobby,EventUpdateDTO } from '../../../../shared/types';
 import { socket } from '../../socket';
 
 export default function Home(){
@@ -15,10 +16,11 @@ export default function Home(){
     const [showModal,setShowModal] = useState(false);
     const [step,setStep] = useState(1);
     const [hobbies,setHobbies] = useState<Hobby[]>([]);
-    const [location,setLocation] = useState('Dundalk');
+    const [location,setLocation] = useState('');
     const [events,setEvents] = useState<SocialEvent[]>([]);
+    const [editingEvent,setEditingEvent] = useState<SocialEvent | null>(null);
     const [formData,setFormData] = useState<EventFormData>({
-        name: '',
+        title: '',
         description: '',
         selectedHobbies : [],
         eventImage : null,
@@ -26,6 +28,8 @@ export default function Home(){
         location: '',
         isCreatorEvent : false
     });
+
+
 
     //hobbies from server
     useEffect(() =>{
@@ -46,14 +50,27 @@ export default function Home(){
         });
 
         // Adding this to see all events for debugging
-        socket.onAny((event, ...args) => {
-            console.log(`🕵️ Любое событие [${event}]:`, args);
+        socket.onAny((eventName, ...args) => {
+            console.log(`Пришло событие: "${eventName}"`); // Кавычки покажут пробелы
+            console.log('Данные:', args);
         });
 
         socket.on('event:deleted', (deletedId: number) => {
         // Filtering the deleted event out of the events list
         setEvents(prev => prev.filter(event => event.id !== deletedId));
-    });
+        });
+
+        socket.on('event:updated', (updatedEvent: SocialEvent) => {
+            setEvents(prev => {
+                const newEvents = prev.map(event => {
+                    if (event.id == updatedEvent.id) {
+                        return { ...event, ...updatedEvent };
+                    }
+                    return event;
+                });
+                return newEvents;
+            });
+        });
 
         return () => {
             socket.off('event:created');
@@ -102,7 +119,7 @@ export default function Home(){
         try{
             const token = localStorage.getItem('token');
             const data = new FormData();
-            data.append('name',formData.name);
+            data.append('title',formData.title);
             data.append('description',formData.description);
             data.append('date',formData.date);
             data.append('location',formData.location);
@@ -135,7 +152,7 @@ export default function Home(){
                 setShowModal(false);
                 setStep(1);
                 setFormData({
-                    name: '',
+                    title: '',
                     description: '',
                     selectedHobbies : [],
                     eventImage : null,
@@ -177,6 +194,44 @@ export default function Home(){
         }
     }
 
+    const handleUpdateEvent = async (updatedData: EventUpdateDTO & {id?: number}) => {
+        
+        const eventId = updatedData.id || editingEvent?.id;
+        if(!updatedData) return;
+
+        try{
+            const token = localStorage.getItem('token');
+
+            const data = new FormData();
+            data.append('title',updatedData.title);
+            data.append('description', updatedData.description);
+            data.append('date', updatedData.date);
+            data.append('location', updatedData.location);
+
+            if (updatedData.eventImage){
+                data.append('eventImage', updatedData.eventImage);
+            }
+
+            const res = await fetch(`/api/events/update/${updatedData.id}`,{
+                method: 'PUT',
+                headers: {
+                    'Authorization' : `Bearer ${token}`
+                },
+                body: data
+            });
+
+            if(res.ok){
+                console.log("✅ Ивент обновлен на сервере");
+                setEditingEvent(null); // Closing modal after successful update
+            }else{
+                const errorData = await res.json();
+                alert(`Ошибка: ${errorData.error}`);
+                }
+            }catch(err){
+            console.error('Error updating event:', err);
+        }
+    }
+    
     return (
         <div className="main-wrapper">
 
@@ -220,11 +275,21 @@ export default function Home(){
                                 key = {event.id}
                                 event={event}
                                 onDelete = {handleDeleteEvent}
+                                onEdit ={ (ev: SocialEvent) => setEditingEvent(ev)}
                                 currentUserId={currentUserId}
+                              
                             />
                         );
-        })}
+                })}
+                
                 </div>
+                {editingEvent && (
+                    <EditEventModal 
+                        event={editingEvent} 
+                        onClose={() => setEditingEvent(null)} 
+                        onSave={handleUpdateEvent}
+                    />
+                )}
                 
                 {/* The floating button */}
                 <button className='fab' onClick={() => setShowModal(true)}>
@@ -243,9 +308,9 @@ export default function Home(){
                                     <input 
                                     type="text"
                                     placeholder='Event name'
-                                    value={formData.name}
+                                    value={formData.title}
                                     onChange={(e : React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => 
-                                        setFormData({...formData,name: e.target.value})
+                                        setFormData({...formData,title: e.target.value})
                                     }
                                     />
                                     <textarea

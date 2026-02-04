@@ -5,9 +5,10 @@ interface EventCardProps{
     event: SocialEvent;
     currentUserId?: number;
     onDelete?: (eventId: number) => void;
+    onEdit?: (event: SocialEvent) => void;
 }
 
-export default function EventCard({event,currentUserId,onDelete}: EventCardProps) {
+export default function EventCard({event,currentUserId,onDelete,onEdit}: EventCardProps) {
     
     const { id, title, description, date, location, hobbies, image, creator_id } = event;
 
@@ -33,8 +34,18 @@ export default function EventCard({event,currentUserId,onDelete}: EventCardProps
                 )}
 
                 {isOwner && (
-                    <button
-                        className = 'delete-button'
+                   <div className="event-actions">
+                      <button
+                        className="action-btn edit-button"
+                        onClick={() =>  {
+                            console.log("Кнопка нажата, ивент:", event.id);
+                            onEdit(event);
+                            }}>
+                            Edit
+                        </button>
+                        
+                       <button
+                        className = 'action-btn delete-button'
                         onClick={() => {
                             if(window.confirm('Are you sure you want to delete this event?')){
                                 onDelete(id);
@@ -42,7 +53,8 @@ export default function EventCard({event,currentUserId,onDelete}: EventCardProps
                         }}
                     >
                         Delete
-                    </button>
+                    </button>  
+                   </div>
                 )}
             </div>
         </div>

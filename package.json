@@ -11,5 +11,8 @@
   },
   "scripts": {
     "test": "jest"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
   }
 }

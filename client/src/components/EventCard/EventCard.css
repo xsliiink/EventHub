@@ -48,25 +48,6 @@
   overflow: hidden;
 }
 
-/* Стили для той самой кнопки удаления */
-.delete-button {
-  margin-top: 12px;
-  padding: 8px 16px;
-  background-color: #fff0f0;
-  color: #ff4d4f;
-  border: 1px solid #ffccc7;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.delete-button:hover {
-  background-color: #ff4d4f;
-  color: #fff;
-  border-color: #ff4d4f;
-}
-
 /* Адаптив: на мобилках карточка станет вертикальной */
 @media (max-width: 600px) {
   .event-card {
@@ -76,4 +57,41 @@
     width: 100%;
     height: 200px;
   }
+}
+
+.event-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.edit-button:hover, .delete-button:hover {
+    opacity: 0.9;
+}
+
+.action-button{
+  padding: 8px 20px; /* Фиксированные отступы сделают их одной высоты */
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.edit-button {
+  background-color: #52c41a; /* Красивый зеленый */
+  color: white;
+}
+
+.delete-button {
+  background-color: #ff4d4f; /* Красивый красный */
+  color: white;
+}
+
+/* 3. Эффект при наведении для всех сразу */
+.action-btn:hover {
+  filter: brightness(1.1); /* Слегка осветляет любую кнопку */
+  transform: translateY(-1px);
 }

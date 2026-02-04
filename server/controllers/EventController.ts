@@ -1,112 +1,100 @@
 import {Response,Request} from 'express';
 import  db  from '../db';
+import {dbRun,dbAll,dbGet,dbExec} from '../db';
 import sqlite3 from 'sqlite3';
 import { EventBody, hobbyRow,EventRow, SocialEvent } from '@shared/types';
+import {updateEventSchema,createEventSchema} from '../validation/event'
+import {mapEventRowToSocialEvent} from '../mappers/event.mapper'
 import { AuthRequest } from '../types/index';
 import { EventsQuery } from '@shared/types';
 import {io} from '../server';
 import { resolve } from 'node:dns';
+import { replaceEventImage } from '../services/event.service'
 
-export const createEvent = async(req: AuthRequest & {body: EventBody}, res: Response) => {
+
+export const createEvent = async(
+    req: AuthRequest,
+    res: Response
+) => {
     try{
-            const {name,description,location,date} = req.body;
-            const rawHobbies = req.body.selectedHobbies || req.body['selectedHobbies[]'] || [];
-            const selectedHobbies: string[] = Array.isArray(rawHobbies) 
-                ? rawHobbies 
-                : (rawHobbies ? [rawHobbies] : []);
 
-            const eventImage = req.file ? req.file.filename : null;
-            const creator_id = req.user?.id;//проверка токена и юзера
-            const official = 0;
-            const socketIo = req.app.get('io');
+        //Entry + Validation
+        const parsed = createEventSchema.safeParse(req.body);
+        if(!parsed.success){
+            return res.status(400).json({
+                error: 'invalid request body',
+                details: parsed.error.flatten()
+            });
+        }
 
-            if (!req.user) {
-                return res.status(401).json({ error: 'Unauthorized: You must be logged in' });
-            }
+        const {title,description,location,date,selectedHobbies = []} = parsed.data;
 
-            if(!name || !description || !date){
-                return res.status(400).json({error:'Required fields are missing'});
-            }
-            
-            //Inserting event into DB
-            const eventId = await new Promise<number>((resolve,reject) => {
-                db.run(
-                `INSERT INTO events (name,description,date,location,image,creator_id,official)
-                VALUES (?,?,?,?,?,?,?)`,
-                [name,description,date,location,eventImage,creator_id,official],
-                function(this: sqlite3.RunResult, err: Error | null){
-                    if(err){
-                        console.error("🚨 Ошибка SQL events:", err.message);
-                        reject(err);
-                    }else{
-                        console.log("✅ Событие создано, ID:", this.lastID);
-                        resolve(this.lastID);
-                    }
-                })
-            })
+        const eventImage = req.file ? req.file.filename : null;
+        const creator_id = req.user?.id;//проверка токена и юзера
+        const official = 0;
+        const socketIo = req.app.get('io');
 
-            //Linking hobbies to event
-            if(selectedHobbies.length > 0){
-                for (const hobbyName of selectedHobbies){
-                    await new Promise<void>((resolve,reject) => {
-                        db.get(`SELECT id FROM hobbies WHERE name = ?`, [hobbyName], (err: Error | null, row?: hobbyRow) => {
-                        if (err) return reject(err);
-                        if (row){
-                            db.run(`INSERT INTO event_hobbies (event_id, hobby_id) VALUES (?,?)`,
-                                [eventId, row.id], (runErr: Error | null) => {
-                                if (runErr) reject(runErr);
-                                else resolve();
-                                });
-                            }else{
-                                resolve();  
-                            }       
-                        })
-                    })
+
+        //Security Check
+        if (!req.user) {
+            return res.status(401).json({ error: 'Unauthorized: You must be logged in' });
+        }
+
+        //Inserting event into DB
+        const result = await dbRun(
+            `
+            INSERT INTO events (name,description,date,location,image,creator_id,official)
+            VALUES (?,?,?,?,?,?,?)
+            `,
+            [title,description,date,location,eventImage,creator_id,official],
+        ) as sqlite3.RunResult;
+
+        const eventId = result.lastID;
+
+        //Linking hobbies to event
+        if(selectedHobbies.length > 0){
+            for (const hobbyName of selectedHobbies){
+                const hobby = await dbGet(
+                    `SELECT id FROM hobbies WHERE name = ?`,
+                    [hobbyName]
+                ) as hobbyRow | undefined;
+
+                if(hobby){
+                    await dbRun(
+                        `INSERT INTO event_hobbies (event_id,hobby_id) VALUES (?,?)`,
+                        [eventId,hobby.id]
+                    );
                 }
             }
+        }
 
-            const freshEvent = await  new Promise<SocialEvent>((resolve,reject) => {
-                db.get(`
-                    SELECT
-                        e.id,e.name,e.description,e.date,e.location,e.image,e.creator_id,e.official,
-                        GROUP_CONCAT(h.name) as hobbies
-                    FROM events e
-                    LEFT JOIN event_hobbies eh ON e.id = eh.event_id
-                    LEFT JOIN hobbies h ON eh.hobby_id = h.id
-                    WHERE e.id = ?
-                    GROUP BY e.id
-                    `,[eventId], (err: Error | null, row?: EventRow) => {
-                        if(err){
-                            reject(err);
-                        }else if(!row){
-                            reject(new Error('Event not found after creation'));
-                        }else{
-                            resolve({
-                                id: row.id,
-                                //Mapping name from DB to title for client
-                                title: row.name,
-                                description: row.description,
-                                date: row.date,
-                                location: row.location,
-                                image: row.image || null,
-                                creator_id: row.creator_id,
-                                official: row.official,
-                                //Transforming hobbies from CSV to array
-                                hobbies: typeof row.hobbies === 'string' ? row.hobbies.split(',') : []
-                        });
-                    }
-                })
-            })
+        //Getting fresh event for socket
+        const freshEvent = await dbGet(`
+                SELECT
+                    e.id,
+                    e.name,
+                    e.description,
+                    e.date,
+                    e.location,
+                    e.image,
+                    e.creator_id,
+                    e.official,
+                    GROUP_CONCAT(h.name) as hobbies
+                FROM events e
+                LEFT JOIN event_hobbies eh ON e.id = eh.event_id
+                LEFT JOIN hobbies h ON eh.hobby_id = h.id
+                WHERE e.id = ?
+                GROUP BY e.id
+                `,[eventId],
+            ) as EventRow;
 
-            if (socketIo) {
-                socketIo.emit('event:created', freshEvent);
-                console.log("📡 Сокет: Сигнал отправлен для ивента ID:", eventId);
-            } else {
-                console.error("🚨 Сокет: Объект io не найден в req.app");
-            }
-            return res.status(200).json({message: 'Event created', eventId});
+        //Socket  + Response
+        const fullEvent = mapEventRowToSocialEvent(freshEvent);
 
-            
+        socketIo?.emit('event:created',fullEvent);
+
+        return res.status(201).json({message: 'Event created', eventId});
+    
     }catch(err: unknown){
             console.error('Error creating event: ',err);
            if (!res.headersSent) {
@@ -116,7 +104,10 @@ export const createEvent = async(req: AuthRequest & {body: EventBody}, res: Resp
     }
 }
 
-export const getEvents = (req : Request<Record<string,never>,Record<string,never>,Record<string,never>,EventsQuery>,res: Response) => {
+export const getEvents = (
+    req : Request<Record<string,never>,Record<string,never>,Record<string,never>,EventsQuery>,
+    res: Response
+) => {
     const {location,hobby,official} = req.query;
     
         let query = `
@@ -153,15 +144,15 @@ export const getEvents = (req : Request<Record<string,never>,Record<string,never
                 return res.status(500).json({error : err.message});
             }
             
-            const formatted = rows.map((r: EventRow) => ({
-                ...r,
-                hobbies: r.hobbies ? r.hobbies.split(',') : []
-            }));
+            const formatted = rows.map(mapEventRowToSocialEvent);
             res.json(formatted);
         })
 }
 
-export const deleteEvent = async (req: AuthRequest & {params: {id: string}}, res: Response) => {
+export const deleteEvent = async (
+    req: AuthRequest & {params: {id: string}},
+     res: Response
+) => {
     try{
         const { id } = req.params;
         const userId = req.user?.id;
@@ -193,5 +184,137 @@ export const deleteEvent = async (req: AuthRequest & {params: {id: string}}, res
         res.status(200).json({message: 'Event deleted successfully'});
     }catch(err: unknown){
         res.status(500).json({error: 'Internal server error'});
+    }
+}
+
+export const updateEvent = async (
+    req: AuthRequest & {params: {id: string}},
+    res: Response
+) => {
+    try{
+
+        //Entry + Validation
+        const {id} = req.params;
+        const userId = req.user?.id;
+
+        const parsed = updateEventSchema.safeParse(req.body);
+
+        if(!parsed.success){
+            return res.status(400).json({
+                error: 'Invalid request body',
+                details: parsed.error.flatten()
+            });
+        }
+
+        const {title,description,date,location} = parsed.data;
+        const eventImage = req.file ? req.file.filename : undefined;
+
+        //Security check
+        const event = await dbGet(
+            `SELECT creator_id,image FROM events WHERE id = ?`,
+            [id]
+            ) as EventRow | undefined;
+
+        if (!event){
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        if (event.creator_id !== userId) {
+            return res.status(403).json({ error: 'Access denied' });
+        }
+
+        //UPDATE preparation 
+        type SqlValue = string | number | null;
+
+        const updatedFields: string[] = [];
+        const values: SqlValue[] = [];
+
+        const eventName = title;
+
+        if(eventName){
+            updatedFields.push('name = ? ');
+            values.push(eventName);
+        }
+
+        if (description) {
+            updatedFields.push('description = ?');
+            values.push(description);
+        }
+        if (date) {
+             updatedFields.push('date = ?');
+            values.push(date);
+        }
+        if (location) {
+             updatedFields.push('location = ?');
+            values.push(location);
+        }
+
+        if(!updatedFields.length && !eventImage){
+            return res.status(400).json({ error: 'No fields to update' });
+        }
+
+        //Transaction
+        await dbExec('BEGIN TRANSACTION');
+
+        try{
+            //Updating fields
+            if (updatedFields.length){
+                values.push(Number(id));
+
+                const updateSql = `
+                    UPDATE events
+                    SET ${updatedFields.join(', ')}
+                    WHERE id = ? 
+                `
+
+                await dbRun(updateSql,values);
+            }
+
+            //Service - Working on Image
+             await replaceEventImage(Number(id),eventImage)
+
+             await dbExec('COMMIT')
+        }catch(err: unknown){
+            await dbExec('ROLLBACK');
+            throw err;
+        }
+
+
+        //Getting an updated event
+        const updatedEvent = await dbGet(
+            `
+            SELECT 
+                e.id,
+                e.name,
+                e.description,
+                e.date,
+                e.location,
+                e.image,
+                e.creator_id,
+                e.official,
+                GROUP_CONCAT(h.name) AS hobbies
+            FROM events e 
+            LEFT JOIN event_hobbies eh ON e.id = eh.event_id
+            LEFT JOIN hobbies h ON eh.hobby_id = h.id
+            WHERE e.id = ?
+            GROUP BY e.id
+            `,[id]
+        ) as EventRow;
+
+        const fullEvent =  mapEventRowToSocialEvent(updatedEvent);
+
+
+        //Socket
+        const socketIo = req.app.get('io');
+        if(socketIo){
+            socketIo.emit('event:updated',fullEvent);
+        }
+
+        res.json(fullEvent);
+    }catch(err: unknown){
+        if (err instanceof Error) {
+            console.error(err.message);
+        }
+        res.status(500).json({error: 'Internal server error'})
     }
 }
