@@ -196,8 +196,7 @@ export default function Home(){
 
     const handleUpdateEvent = async (updatedData: EventUpdateDTO & {id?: number}) => {
         
-        const eventId = updatedData.id || editingEvent?.id;
-        if(!updatedData) return;
+        if(!updatedData.id) return;
 
         try{
             const token = localStorage.getItem('token');
