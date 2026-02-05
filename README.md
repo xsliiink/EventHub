@@ -138,7 +138,7 @@ cd server && npx jest --runInBand
 - Mobile responsive design  
 
 **Example UI:**
-| Home Page | Event Details |
+| Create | Update |
 |------------|----------------|
 | ![Create](./screenshots/create.gif) | ![Update](./screenshots/update.gif) |
 
