@@ -4,11 +4,12 @@ import type { SocialEvent } from '../../../shared/types';
 interface EventCardProps{
     event: SocialEvent;
     currentUserId?: number;
+    isPending : boolean;
     onDelete?: (eventId: number) => void;
     onEdit?: (event: SocialEvent) => void;
 }
 
-export default function EventCard({event,currentUserId,onDelete,onEdit}: EventCardProps) {
+export default function EventCard({event,currentUserId,isPending,onDelete,onEdit}: EventCardProps) {
     
     const { id, title, description, date, location, hobbies, image, creator_id } = event;
 
@@ -36,6 +37,7 @@ export default function EventCard({event,currentUserId,onDelete,onEdit}: EventCa
                 {isOwner && (
                    <div className="event-actions">
                       <button
+                      disabled = {isPending}
                         className="action-btn edit-button"
                         onClick={() =>  {
                             console.log("Кнопка нажата, ивент:", event.id);
@@ -45,6 +47,7 @@ export default function EventCard({event,currentUserId,onDelete,onEdit}: EventCa
                         </button>
                         
                        <button
+                       disabled = {isPending}
                         className = 'action-btn delete-button'
                         onClick={() => {
                             if(window.confirm('Are you sure you want to delete this event?')){

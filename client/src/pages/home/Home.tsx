@@ -1,23 +1,23 @@
 import {Link} from 'react-router-dom';
 import './Home.css';
-import {useCallback, useEffect,useState} from 'react';
+import { useState} from 'react';
 import {AiOutlinePlus} from 'react-icons/ai';
+
 import EventCard from '../../components/EventCard/EventCard';
 import EditEventModal from '../../components/editModal/EditEventModal';
-import type { EventFormData,SocialEvent, Hobby,EventUpdateDTO } from '../../../../shared/types';
-import { socket } from '../../socket';
+
+import { useHobbies } from '../../hooks/useHobbies'
+import { useOptimisticEvents } from '../../hooks/useOptimisticEvents';
+
+import type { EventFormData,SocialEvent,EventUpdateDTO } from '../../../../shared/types';
 
 export default function Home(){
-
     const userString = localStorage.getItem('user');
     const currentUser = userString ? JSON.parse(userString) : null;
     const currentUserId = currentUser ? currentUser.id : null;
-
     const [showModal,setShowModal] = useState(false);
     const [step,setStep] = useState(1);
-    const [hobbies,setHobbies] = useState<Hobby[]>([]);
     const [location,setLocation] = useState('');
-    const [events,setEvents] = useState<SocialEvent[]>([]);
     const [editingEvent,setEditingEvent] = useState<SocialEvent | null>(null);
     const [formData,setFormData] = useState<EventFormData>({
         title: '',
@@ -28,77 +28,20 @@ export default function Home(){
         location: '',
         isCreatorEvent : false
     });
+    
 
+    const {
+        events,
+        pendingEventIds,
+        isLoading,
+        updateEvent,
+        deleteEvent
+    } = useOptimisticEvents(location);
 
-
-    //hobbies from server
-    useEffect(() =>{
-        fetch('/api/hobbies')
-        .then(res => res.json())
-        .then(data => {
-            console.log("Hobbies from server:", data);
-            setHobbies(data);
-        })
-        .catch(err => console.error('Error loading hobbies', err));
-    },[]);
-
-    //socket
-    useEffect(() => {
-
-        socket.on('event:created', (newEvent: SocialEvent) => {
-            setEvents(prev => [newEvent, ...prev]);
-        });
-
-        // Adding this to see all events for debugging
-        socket.onAny((eventName, ...args) => {
-            console.log(`Пришло событие: "${eventName}"`); // Кавычки покажут пробелы
-            console.log('Данные:', args);
-        });
-
-        socket.on('event:deleted', (deletedId: number) => {
-        // Filtering the deleted event out of the events list
-        setEvents(prev => prev.filter(event => event.id !== deletedId));
-        });
-
-        socket.on('event:updated', (updatedEvent: SocialEvent) => {
-            setEvents(prev => {
-                const newEvents = prev.map(event => {
-                    if (event.id == updatedEvent.id) {
-                        return { ...event, ...updatedEvent };
-                    }
-                    return event;
-                });
-                return newEvents;
-            });
-        });
-
-        return () => {
-            socket.off('event:created');
-            socket.offAny();
-        };
-}, []);
-
-    //loading events
-    const loadEvents = useCallback(async () => {
-        try{
-            const params = new URLSearchParams();
-
-            if(location) params.append('location',location);
-
-            const res = await fetch(`/api/events?${params.toString()}`);
-            const data = await res.json();
-
-            console.log("🔥 Events from server:", data);
-
-            setEvents(data);
-        }catch(err){
-            console.error('Error loading events:',err);
-        }
-    },[location])
-
-    useEffect(() => {
-        loadEvents();
-    }, [loadEvents]);
+    const {
+        hobbies,
+        isLoading : hobbiesLoading,
+    } = useHobbies();
 
     const handleHobbyChange = (hobbyName : string) => {
         setFormData(prev => {
@@ -168,68 +111,6 @@ export default function Home(){
             alert("Something went wrong");
         }
     };
-
-    const handleDeleteEvent = async (id : number) => {
-        try{
-            const token = localStorage.getItem('token');
-            const res = await fetch(`/api/events/delete/${id}`,{
-                method : 'DELETE',
-                headers: {
-                    'Authorization' : `Bearer ${token}`
-                }
-            });
-
-            const data = await res.json();
-            if (res.ok){
-                console.log('Event deletion requested', id);
-            }else{
-                alert(data.error || 'Error deleting event');
-            }
-        }catch (err){
-            if (err instanceof Error){
-                console.error('Error deleting event:', err.message);
-            }else{
-                console.error('Unknown error deleting event',err);
-            }
-        }
-    }
-
-    const handleUpdateEvent = async (updatedData: EventUpdateDTO & {id?: number}) => {
-        
-        if(!updatedData.id) return;
-
-        try{
-            const token = localStorage.getItem('token');
-
-            const data = new FormData();
-            data.append('title',updatedData.title);
-            data.append('description', updatedData.description);
-            data.append('date', updatedData.date);
-            data.append('location', updatedData.location);
-
-            if (updatedData.eventImage){
-                data.append('eventImage', updatedData.eventImage);
-            }
-
-            const res = await fetch(`/api/events/update/${updatedData.id}`,{
-                method: 'PUT',
-                headers: {
-                    'Authorization' : `Bearer ${token}`
-                },
-                body: data
-            });
-
-            if(res.ok){
-                console.log("✅ Ивент обновлен на сервере");
-                setEditingEvent(null); // Closing modal after successful update
-            }else{
-                const errorData = await res.json();
-                alert(`Ошибка: ${errorData.error}`);
-                }
-            }catch(err){
-            console.error('Error updating event:', err);
-        }
-    }
     
     return (
         <div className="main-wrapper">
@@ -259,34 +140,37 @@ export default function Home(){
 
                     {/* You can add more filters here in the future */}
 
-                    <button onClick={loadEvents}>Apply Filters</button>
                 </div>
                 
                 {/* Showing the events on a page */}
 
                 <div className="events-list">
-                    {events.length === 0 && <p>No events found</p>}
-                    {events.map(event => {
-                        if (!event) return null;
+                    {isLoading && <p>Loading events...</p>}
 
-                        return (
-                            <EventCard
-                                key = {event.id}
-                                event={event}
-                                onDelete = {handleDeleteEvent}
-                                onEdit ={ (ev: SocialEvent) => setEditingEvent(ev)}
-                                currentUserId={currentUserId}
-                              
-                            />
-                        );
-                })}
-                
-                </div>
+                    {!isLoading && events.length === 0 && (
+                        <p>No events found</p>
+                    )}
+
+                    {!isLoading &&
+                        events.map(event => (
+                        <EventCard
+                            key={event.id}
+                            event={event}
+                            onDelete={deleteEvent}
+                            onEdit={(ev: SocialEvent) => setEditingEvent(ev)}
+                            currentUserId={currentUserId}
+                            isPending={pendingEventIds.has(event.id)}
+                        />
+                    ))}
+                    </div>
                 {editingEvent && (
                     <EditEventModal 
                         event={editingEvent} 
                         onClose={() => setEditingEvent(null)} 
-                        onSave={handleUpdateEvent}
+                        onSave={async (data) => {
+                            await updateEvent(data);
+                            setEditingEvent(null);
+                        }}
                     />
                 )}
                 
@@ -327,7 +211,11 @@ export default function Home(){
                         
                             {step === 2 && (
                                 <div className='step'>
-                                    {hobbies.map((hobby) =>(
+                                     {hobbiesLoading && <p>Loading hobbies...</p>}
+
+                                    
+                                    {!hobbiesLoading && 
+                                     hobbies.map((hobby) =>(
                                         <label key={hobby.id}>
                                             <input 
                                             type="checkbox"
