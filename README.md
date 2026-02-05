@@ -104,17 +104,27 @@ cd server && npx jest --runInBand
 📁 Project Structure
 ├── 📱 client (Frontend)
 │   ├── src
-│   │   ├── components   # Reusable UI components
-│   │   ├── pages        # App views (Home, Profile, etc.)
-│   │   └── App.tsx      # Main logic & routing
+│   │   ├── components     # Reusable UI components
+│   │   ├── pages          # App views (Home, Profile, etc.)
+│   │   ├── hooks          # Custom hooks (optimistic state, sockets)
+│   │   └── App.tsx        # Main routing & layout
 │   └── vite.config.ts
+│
 ├── ⚙️ server (Backend)
-│   ├── app.ts           # Express & API logic
-│   ├── db.ts            # SQLite connection
-│   ├── middleware       # JWT & Auth logic
-│   ├── tests            # Jest integration tests
-│   └── uploads          # User images (Avatars/Events)
-├── 🖼️ screenshots       # UI previews
+│   ├── config             # App & environment configuration
+│   ├── routes             # HTTP route definitions
+│   ├── controllers        # Request handling & orchestration
+│   ├── services           # Business logic layer
+│   ├── mappers            # DB → API response mapping
+│   ├── validation         # Zod schemas for request validation
+│   ├── middleware         # Auth, JWT, error handling
+│   ├── types              # Server‑only TypeScript types
+│   ├── tests              # Integration tests (Jest, Supertest)
+│   ├── uploads            # Uploaded images (events, avatars)
+│   ├── app.ts             # Express app setup
+│   └── db.ts              # SQLite database connection
+│
+├── 🖼️ screenshots         # Runtime demos (GIF / images)
 └── 📄 package.json
 ```
 
@@ -130,7 +140,7 @@ cd server && npx jest --runInBand
 **Example UI:**
 | Home Page | Event Details |
 |------------|----------------|
-| ![Home Page](./screenshots/3main.png) | ![Add Event](./screenshots/3add_event.png) |
+| ![Create](./screenshots/create.gif) | ![Update](./screenshots/update.gif) |
 
 ---
 
