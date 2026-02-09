@@ -1,11 +1,12 @@
 import type { SocialEvent } from '../../../shared/types';
 
 export type EventsState = {
-    events: SocialEvent[];
-    pendingIds : Set<number>,
-    isLoading: boolean
+    events: SocialEvent[]; //events from server
+    pendingIds : Set<number>, //pending state
+    isLoading: boolean //initial loading state
 };
 
+//Data that is sent to Reducer so it knows what to do
 export type EventsAction = 
 | {type: 'LOAD_START'}
 | {type: 'LOAD_SUCCESS';payload: SocialEvent[]}

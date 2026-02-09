@@ -35,7 +35,8 @@ export default function Home(){
         pendingEventIds,
         isLoading,
         updateEvent,
-        deleteEvent
+        deleteEvent,
+        eventCreate
     } = useOptimisticEvents(location);
 
     const {
@@ -57,61 +58,32 @@ export default function Home(){
             };
         });
     };
-
-    const eventCreate = async() => {
-        try{
-            const token = localStorage.getItem('token');
-            const data = new FormData();
-            data.append('title',formData.title);
-            data.append('description',formData.description);
-            data.append('date',formData.date);
-            data.append('location',formData.location);
-            data.append('isCreatorEvent',String(formData.isCreatorEvent));
-
-            if(formData.eventImage){
-                data.append('eventImage',formData.eventImage);
-            }
-
-            formData.selectedHobbies.forEach(hobby => data.append('selectedHobbies[]',hobby));
-
-
-            for (const pair of data.entries()) {
-                console.log(pair[0], pair[1]);
-            }
-
-            const res = await fetch ('/api/events/create',{
-                method: 'POST',
-                headers:{
-                    'Authorization' : `Bearer ${token}`
-                },
-                body: data
-            });
-
-            const result = await res.json();
-            console.log('Event created',result);
-
-            if(res.ok){
-                alert('Event created successfully');
-                setShowModal(false);
-                setStep(1);
-                setFormData({
-                    title: '',
-                    description: '',
-                    selectedHobbies : [],
-                    eventImage : null,
-                    date : "",
-                    location: '',
-                    isCreatorEvent : false
-                });
-            }else{
-                alert(result.error || 'Error creating event');
-            }
-        }catch (err){
-            console.error("Error creating event:", err);
-            alert("Something went wrong");
-        }
-    };
     
+    const handleFinishCreate = async () =>{
+        const result = await eventCreate(formData);
+
+        if(result.success){
+            alert('Event created successfully');
+            setShowModal(false);
+            setStep(1);
+
+            //cleaning the Form
+            setFormData({
+                title: '',
+                description: '',
+                selectedHobbies: [],
+                eventImage: null,
+                date: "",
+                location: '',
+                isCreatorEvent: false
+            });
+        }else{
+            alert(result.error || 'Something went wrong');
+        }
+
+       
+    }
+
     return (
         <div className="main-wrapper">
 
@@ -266,7 +238,7 @@ export default function Home(){
                                         }
                                     />
                                     <button onClick={() => setStep(step - 1)}>Back</button>
-                                    <button onClick={eventCreate}>Finish</button>
+                                    <button onClick={handleFinishCreate}>Finish</button>
                                 </div>
                             )}
 

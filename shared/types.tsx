@@ -85,7 +85,7 @@ export interface rawHobbies{
 
 // Form data for creating/editing an event on the client side
 export interface EventFormData{
-    name: string;
+    title: string;
     description: string;
     selectedHobbies : string[];
     eventImage : File | null;

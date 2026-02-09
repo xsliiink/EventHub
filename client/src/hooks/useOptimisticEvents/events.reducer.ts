@@ -7,8 +7,8 @@ export const initialState: EventsState = {
 };
 
 export function eventsReducer(
-    state: eventsState,
-    action: EventsAction
+    state: EventsState,//{initialState}
+    action: EventsAction //{type,payload}
 ) : EventsState {
     switch (action.type){
         case 'LOAD_START':
@@ -30,24 +30,24 @@ export function eventsReducer(
         case 'UPDATE_OPTIMISTIC':
             return {
                 ...state,
-                events: state.events.map(event =>
+                events: state.events.map(event =>//mapping through events
                     event.id === action.payload.id
-                        ? action.payload
-                        : event
+                        ? action.payload //adding new event
+                        : event//leaving the old one
                 ),
             };
 
         case 'DELETE_OPTIMISTIC':
             return {
                 ...state,
-                events: state.events.filter(
-                    event => event.id !== action.payload
+                events: state.events.filter(event =>
+                     event.id !== action.payload
                 ),
             };
 
         case 'PENDING_ADD': {
             const next = new Set(state.pendingIds);
-            next.add(action.payload);
+            next.add(action.payload); //adding a new pending event to the Set
             return { ...state, pendingIds: next };
         }
 
