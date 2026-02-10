@@ -21,6 +21,7 @@ export interface SocialEvent{
     creator_id : number;
     official: number;
     date: string;
+    //this is the path to the file  
     image: string | null;
     location: string | null;
 }
@@ -28,6 +29,17 @@ export interface SocialEvent{
 export interface EventRow extends Omit<SocialEvent,'hobbies'|'title'>{
     name: string;
     hobbies: string | null;
+}
+
+//event when updating it
+export interface UpdateEventDTO {
+    id: number;
+    title?: string;
+    description?: string | null;
+    date?: string;
+    location?: string | null;
+    eventImage?: File | null; // Тот самый файл
+    hobbies?: string[];       // Если решишь обновлять хобби
 }
 
 export interface UserHobby{

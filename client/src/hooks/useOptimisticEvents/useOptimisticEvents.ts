@@ -1,83 +1,51 @@
 import { useEffect, useState,useReducer } from 'react';
+import {useQuery} from '@tanstack/react-query';
 import { socket } from '../../socket';
 import {eventsReducer,initialState} from './events.reducer'
-import type { SocialEvent,EventFormData } from '../../../../shared/types';
+import type { SocialEvent,EventFormData,UpdateEventDTO} from '../../../../shared/types';
+import { RiSafariFill } from 'react-icons/ri';
 
-function addPending(prev: Set<number>,id : number) : Set<number>{
-    const next = new Set(prev);
-    next.add(id);
-    return next;
-}
-
-function removePending(prev: Set<number>,id : number) : Set<number>{
-    const next = new Set(prev);
-    next.delete(id);
-    return next;
-}
-
-function optimisticUpdateEvent(
-    prev : SocialEvent[],
-    updated: SocialEvent
-): SocialEvent[]{
-    return prev.map(event =>
-        event.id === updated.id ? updated : event
-    );
-}
-
-function optimisticDeleteEvent(
-    prev: SocialEvent[],
-    id: number
-) : SocialEvent[]{
-    return prev.filter(event => event.id !== id)
+//API functions
+async function fetchEvents(location: string): Promise<SocialEvent[]>{
+    const params = new URLSearchParams(location ? {location}: {})
+    const res = await fetch(`/api/events?${params.toString()}`)
+    if(!res.ok) throw new Error('Failed to fetch evetns');
+    return res.json();
 }
 
 export function useOptimisticEvents(location: string){
-    const [state,dispatch] = useReducer(eventsReducer,initialState);
-    const {events, pendingIds,isLoading} = state;
+    // const [state,dispatch] = useReducer(eventsReducer,initialState);
+    // const {events, pendingIds,isLoading} = state;
 
-     //loading events
-    useEffect(() => {
-    const loadEvents = async () => {
-        dispatch({type: 'LOAD_START'})
+    const queryClient = useQueryClient();
+    const queryKey = ['events',location];
 
-        try {
-
-            const params = new URLSearchParams();
-
-            if (location) {
-                params.append('location', location);
-            }
-
-            const res = await fetch(`/api/events?${params.toString()}`);
-            const data = await res.json();
-
-            dispatch({type: 'LOAD_SUCCESS',payload: data});
-        } catch (err: unknown) {
-        console.error('Error loading events:', err);
-        dispatch({type: 'LOAD_SUCCESS',payload: []});
-        }
-    };
-
-    loadEvents();
-    }, [location]);
+    //Getting the data(server state),loading events
+    const {data :events = [],isLoading} = useQuery({
+        queryKey,
+        queryFn: () => fetchEvents(location);
+    })
 
     //socket
     useEffect(() => {
 
         const handleCreated = (newEvent : SocialEvent) => {
-            dispatch({type:'ADD_EVENT',payload: newEvent});
+            queryClient.setQueryData(queryKey,(old: SocialEvent[] = []) => [...old,newEvent]);
         }
-        
+         
         const handleDeleted = (deletedId : number) => {
               // Filtering the deleted event out of the events list
-            dispatch({type: 'DELETE_OPTIMISTIC',payload:deletedId});
+            queryClient.setQueryData(queryKey,(old:SocialEvent[] = []) => 
+                old.filter(e => e.id !== deletedId)
+            );
         };
 
         const handleUpdated = (updatedEvent: SocialEvent) =>{
-            if (state.pendingIds.has(updatedEvent.id)) return;
-
-            dispatch({ type: 'UPDATE_OPTIMISTIC', payload: updatedEvent });
-        }
+            //Manually editing the cash and changing the event
+            queryClient.setQueryData(queryKey,(old:SocialEvent[] = []) => 
+                old.map(e => e.id === updatedEvent.id ? updatedEvent : e)
+            );
+        };
 
         
         socket.on('event:created',handleCreated);
@@ -89,9 +57,9 @@ export function useOptimisticEvents(location: string){
             socket.off('event:deleted', handleDeleted);
             socket.off('event:updated', handleUpdated);
         };
-    }, [state.pendingIds]);
+    }, [queryClient,queryKey]);
 
-    const updateEvent = async (updatedData: Partial<SocialEvent> & { id: number }) => {
+    const updateEvent = async (updatedData: UpdateEventDTO) => {
 
             const previousEvents = events;
             const eventId = updatedData.id;
@@ -121,11 +89,20 @@ export function useOptimisticEvents(location: string){
                 const token = localStorage.getItem('token');
                 const data = new FormData();
 
-                data.append('title',updatedData.title);
-                data.append('description', updatedData.description);
-                data.append('date', updatedData.date);
-                data.append('location', updatedData.location);
+                if (updatedData.title) {
+                    data.append('title', updatedData.title);
+                }
+                if (updatedData.date) {
+                    data.append('date', updatedData.date);
+                }
 
+                if (updatedData.description !== undefined) {
+                    data.append('description', updatedData.description ?? '');
+                }
+
+                if (updatedData.location !== undefined) {
+                    data.append('location', updatedData.location ?? '');
+                }
                 if (updatedData.eventImage){
                     data.append('eventImage', updatedData.eventImage);
                 }
