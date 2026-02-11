@@ -1,29 +1,22 @@
-import { useEffect, useState,useReducer } from 'react';
-import {useQuery} from '@tanstack/react-query';
+import { useEffect,useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient,useMutationState } from '@tanstack/react-query';
 import { socket } from '../../socket';
-import {eventsReducer,initialState} from './events.reducer'
-import type { SocialEvent,EventFormData,UpdateEventDTO} from '../../../../shared/types';
-import { RiSafariFill } from 'react-icons/ri';
+import { eventsService } from 'src/api/events.services';
+import type { SocialEvent,EventFormData,UpdateEventDTO} from '@shared/types';
 
-//API functions
-async function fetchEvents(location: string): Promise<SocialEvent[]>{
-    const params = new URLSearchParams(location ? {location}: {})
-    const res = await fetch(`/api/events?${params.toString()}`)
-    if(!res.ok) throw new Error('Failed to fetch evetns');
-    return res.json();
+interface MutationContext {
+    previousEvents: SocialEvent[] | undefined;
 }
 
 export function useOptimisticEvents(location: string){
-    // const [state,dispatch] = useReducer(eventsReducer,initialState);
-    // const {events, pendingIds,isLoading} = state;
 
     const queryClient = useQueryClient();
-    const queryKey = ['events',location];
+    const queryKey = useMemo(() => ['events', location], [location]);
 
     //Getting the data(server state),loading events
-    const {data :events = [],isLoading} = useQuery({
+    const {data :events = [], isLoading, isError} = useQuery({
         queryKey,
-        queryFn: () => fetchEvents(location);
+        queryFn: () => eventsService.getAll(location)
     })
 
     //socket
@@ -57,169 +50,124 @@ export function useOptimisticEvents(location: string){
             socket.off('event:deleted', handleDeleted);
             socket.off('event:updated', handleUpdated);
         };
-    }, [queryClient,queryKey]);
+    }, [queryClient,location,queryKey]);
 
-    const updateEvent = async (updatedData: UpdateEventDTO) => {
+    const updateMutation = useMutation<SocialEvent,Error,UpdateEventDTO,MutationContext>({
+        mutationKey: ['updateEvent'],
 
-            const previousEvents = events;
-            const eventId = updatedData.id;
+        //instead of try/catch block
+        mutationFn: eventsService.update,
 
-             if(!eventId) return;
+        //Optimistic update
+        onMutate: async(updatedData) => {
 
-             dispatch({type: 'PENDING_ADD',payload:eventId});
+            //if there is an ongoing loading - cancel to prevent overlaps
+            await queryClient.cancelQueries({ queryKey });
 
-             const current = state.events.find(e => e.id === eventId);
+            //saving the current state
+            const previousEvents = queryClient.getQueryData<SocialEvent[]>(queryKey);
 
-             const updatedEvent = {
-                ...current,
-                ...updatedData,
-                image: current.image
-                    ? `${current.image}?v=${Date.now()}`
-                    : current.image,
-            };
+            
+            queryClient.setQueryData(queryKey,(old: SocialEvent[] = []) =>
+                old.map(e => e.id === updatedData.id ? {
+                    ...e,
+                    ...updatedData,
+                    image: e.image ? `${e.image.split('?')[0]}?v=${Date.now()}` : e.image
+                } : e)
+            );
 
-             dispatch({
-                type: 'UPDATE_OPTIMISTIC',
-                payload: updatedEvent,
-             })
+            return {previousEvents};
+        },
+             
+        //Error handling
+        onError: (err, _ , context) => {
 
-             console.log('FILE:', updatedData.eventImage);
-
-            try{
-                const token = localStorage.getItem('token');
-                const data = new FormData();
-
-                if (updatedData.title) {
-                    data.append('title', updatedData.title);
-                }
-                if (updatedData.date) {
-                    data.append('date', updatedData.date);
-                }
-
-                if (updatedData.description !== undefined) {
-                    data.append('description', updatedData.description ?? '');
-                }
-
-                if (updatedData.location !== undefined) {
-                    data.append('location', updatedData.location ?? '');
-                }
-                if (updatedData.eventImage){
-                    data.append('eventImage', updatedData.eventImage);
-                }
-
-                const res = await fetch(`/api/events/update/${eventId}`,{
-                    method: 'PUT',
-                    headers: {
-                        'Authorization' : `Bearer ${token}`
-                    },
-                    body: data
-                });
-
-                if(!res.ok){
-                    //rollback
-                    dispatch({type: 'ROLLBACK',payload: previousEvents});
-                }
-
-                const updatedFromServer = await res.json();
-                
-                dispatch({
-                    type: 'UPDATE_OPTIMISTIC',
-                    payload: updatedFromServer,
-                });
-                
-                }catch(err){
-                    //rollback
-                     dispatch({ type: 'ROLLBACK', payload: previousEvents });
-            }finally{
-                //Clear pending
-                 dispatch({ type: 'PENDING_REMOVE', payload: eventId });
+            //overwriting cash with the old data if the error is caught
+            if (context?.previousEvents){
+                queryClient.setQueryData(queryKey,context.previousEvents);
             }
-    }
+            console.error('Error updating',err);
+        },
 
-    const deleteEvent = async (id : number) => {
-        const previousEvents = state.events;
-
-        //mark as pending
-        dispatch({type: 'PENDING_ADD',payload: id});
-
-        //optimistic delete
-        dispatch({type: 'DELETE_OPTIMISTIC',payload:id})
-
-        try{
-            const token = localStorage.getItem('token');
-            const res = await fetch(`/api/events/delete/${id}`,{
-                method : 'DELETE',
-                headers: {
-                    'Authorization' : `Bearer ${token}`
-                }
-            });
-
-            await res.json();
-
-            if (!res.ok){
-                //rollback
-                dispatch({type:'ROLLBACK',payload: previousEvents});
-            }
-        }catch (err: unknown){
-            //rollback
-          dispatch({type:'ROLLBACK',payload: previousEvents});
-        }finally{
-            //clear pending
-            dispatch({type: 'PENDING_REMOVE',payload: id})
+        onSettled: () => {
+            //synch with the database
+            queryClient.invalidateQueries({ queryKey });
         }
-    }
+                
+    })
 
-    const eventCreate = async(values: EventFormData) => {
+    const deleteMutation = useMutation<void,Error,number,MutationContext>({
+        mutationKey: ['deleteEvent'],
+        mutationFn: eventsService.delete,
 
-        try{
-            const token = localStorage.getItem('token');
-            const data = new FormData();
-            data.append('title',values.title);
-            data.append('description',values.description);
-            data.append('date',values.date);
-            data.append('location',values.location);
-            data.append('isCreatorEvent',String(values.isCreatorEvent));
+        //Optimistic Deletion
+        onMutate: async (id:number): Promise<MutationContext> => {
 
-            if(values.eventImage){
-                data.append('eventImage',values.eventImage);
+             //if there is an ongoing loading - cancel to prevent overlaps
+            await queryClient.cancelQueries({ queryKey });
+
+            const previousEvents = queryClient.getQueryData<SocialEvent[]>(queryKey);
+
+            queryClient.setQueryData<SocialEvent[]>(queryKey, (old = []) => 
+                old.filter(event => event.id !== id)
+            );
+
+            return { previousEvents };
+        },
+
+        //Rollback on Error
+        onError: (err,id,context) => {
+            //rollback if server returned an error
+            if (context?.previousEvents) {
+                queryClient.setQueryData(queryKey, context.previousEvents);
             }
+            console.error(`Error deleting event ${id}:`, err.message);
+        },
 
-            values.selectedHobbies.forEach(hobby => data.append('selectedHobbies[]',hobby));
-
-
-            for (const pair of data.entries()) {
-                console.log(pair[0], pair[1]);
-            }
-
-            const res = await fetch ('/api/events/create',{
-                method: 'POST',
-                headers:{
-                    'Authorization' : `Bearer ${token}`
-                },
-                body: data
-            });
-
-            const result = await res.json();
-            console.log('Event created',result);
-
-            if(res.ok){
-               dispatch({ type: 'ADD_EVENT', payload: result });
-               return {success: true};
-            }else{
-               return {success: false,error: result.error}
-            }
-        }catch (err){
-            console.error("Error creating event:", err);
-            return {success: false}
+        onSettled: () => {
+            //synching with sever
+            queryClient.invalidateQueries({ queryKey });
         }
-    };
+    })
+        
+    const createMutation = useMutation<SocialEvent,Error,EventFormData>({
+        mutationFn: eventsService.create,
+
+        onSuccess: (newlyCreatedEvent) => {
+            queryClient.setQueryData<SocialEvent[]>(queryKey, (old = []) => [
+            newlyCreatedEvent, 
+            ...old
+            ]);
+        },
+        
+        onSettled: () => {
+            queryClient.invalidateQueries({queryKey});
+        }
+    })
+
+    //Getting the id's of the pending events 
+    const pendingDeleteIds = useMutationState({
+        filters: { mutationKey: ['deleteEvent'], status: 'pending' },
+        select: (mutation) => mutation.state.variables as number,
+    });
+
+    const pendingUpdateIds = useMutationState({
+        filters: { mutationKey: ['updateEvent'], status: 'pending' },
+        select: (mutation) => (mutation.state.variables as UpdateEventDTO).id,
+    });
 
     return {
-        events,
-        pendingEventIds: pendingIds,
+        events: events ?? [],
         isLoading,
-        updateEvent,
-        deleteEvent,
-        eventCreate
+        isError,
+
+        pendingEventIds: new Set([...pendingDeleteIds, ...pendingUpdateIds]),
+        isCreating: createMutation.isPending,
+
+        //Mutations
+        updateEvent: updateMutation.mutate,
+        deleteEvent: deleteMutation.mutate,
+        eventCreate : createMutation.mutateAsync,
+        
     }
 }

@@ -2,6 +2,7 @@ import {Link} from 'react-router-dom';
 import './Home.css';
 import { useState} from 'react';
 import {AiOutlinePlus} from 'react-icons/ai';
+import toast from 'react-hot-toast';
 
 import EventCard from '../../components/EventCard/EventCard';
 import EditEventModal from '../../components/editModal/EditEventModal';
@@ -9,7 +10,17 @@ import EditEventModal from '../../components/editModal/EditEventModal';
 import { useHobbies } from '../../hooks/useHobbies'
 import { useOptimisticEvents } from '../../hooks/useOptimisticEvents';
 
-import type { EventFormData,SocialEvent,EventUpdateDTO } from '../../../../shared/types';
+import type { EventFormData,SocialEvent } from '@shared/types';
+
+const initialFormState: EventFormData = {
+    title: '',
+    description: '',
+    selectedHobbies: [],
+    eventImage: null,
+    date: "",
+    location: '',
+    isCreatorEvent: false
+};
 
 export default function Home(){
     const userString = localStorage.getItem('user');
@@ -32,8 +43,10 @@ export default function Home(){
 
     const {
         events,
-        pendingEventIds,
         isLoading,
+        isError,
+        pendingEventIds,
+        isCreating,    
         updateEvent,
         deleteEvent,
         eventCreate
@@ -60,28 +73,23 @@ export default function Home(){
     };
     
     const handleFinishCreate = async () =>{
-        const result = await eventCreate(formData);
 
-        if(result.success){
-            alert('Event created successfully');
+        if (isCreating) return;
+
+        try{
+            await eventCreate(formData);
+
             setShowModal(false);
             setStep(1);
+            setFormData(initialFormState);
 
-            //cleaning the Form
-            setFormData({
-                title: '',
-                description: '',
-                selectedHobbies: [],
-                eventImage: null,
-                date: "",
-                location: '',
-                isCreatorEvent: false
-            });
-        }else{
-            alert(result.error || 'Something went wrong');
-        }
+            toast.success('Event created successfully');
+        }catch(err:unknown){
+            const errorMessage = err instanceof Error ? err.message : 'Something went wrong';
 
-       
+            console.error('Create error:', errorMessage);
+            toast.error(errorMessage)
+        }  
     }
 
     return (
@@ -123,6 +131,12 @@ export default function Home(){
                         <p>No events found</p>
                     )}
 
+                    {isError && (
+                        <div className="error-message">
+                            <p>Oops! Could not load the events.Try renewing the page</p>
+                        </div>
+                    )}
+
                     {!isLoading &&
                         events.map(event => (
                         <EventCard
@@ -134,7 +148,9 @@ export default function Home(){
                             isPending={pendingEventIds.has(event.id)}
                         />
                     ))}
-                    </div>
+                </div>
+
+                {/* Edit event */}
                 {editingEvent && (
                     <EditEventModal 
                         event={editingEvent} 
@@ -238,7 +254,13 @@ export default function Home(){
                                         }
                                     />
                                     <button onClick={() => setStep(step - 1)}>Back</button>
-                                    <button onClick={handleFinishCreate}>Finish</button>
+                                    <button
+                                        onClick={handleFinishCreate}
+                                        disabled = {isCreating}
+                                        className={`btn-finish ${isCreating ? 'loading' : ''}`}
+                                     >
+                                        {isCreating ? 'Creating...' : 'Finish'}
+                                     </button>
                                 </div>
                             )}
 

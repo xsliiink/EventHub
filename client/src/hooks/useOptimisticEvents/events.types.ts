@@ -1,4 +1,4 @@
-import type { SocialEvent } from '../../../shared/types';
+import type { SocialEvent } from '@shared/types';
 
 export type EventsState = {
     events: SocialEvent[]; //events from server
