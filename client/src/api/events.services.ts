@@ -1,4 +1,4 @@
-import type { SocialEvent, UpdateEventDTO, EventFormData } from '@shared/types';
+import type { SocialEvent, UpdateEventDTO, EventFormData,EventsQuery,PaginatedResponse } from '@shared/types';
 
 const BASE_URL = '/api/events';
 
@@ -7,11 +7,20 @@ const getAuthHeaders = () => ({
 })
 
 export const eventsService = {
-    getAll: async (location: string): Promise<SocialEvent[]> => {
-        const params = new URLSearchParams(location ? {location} : {});
-        const res = await fetch(`${BASE_URL}?${params.toString()}`);
+    getAll: async (query: EventsQuery): Promise<PaginatedResponse<SocialEvent>> => {
+        const cleanParams = Object.fromEntries(
+            //filtering an array of params to delete empty queries
+            Object.entries(query).filter(([_, v]) => v != null)
+        );
 
-        if(!res.ok) throw new Error('Failed to fetch');
+        const queryString = new URLSearchParams(cleanParams as Record<string,string>);
+        const res = await fetch(`${BASE_URL}/events?${queryString}`)
+
+        if(!res.ok) {
+            const errorBody = await res.json().catch(() => ({}));
+            throw new Error(errorBody.error || 'Failed to fetch events');
+        }
+        
         return res.json();
     },
 

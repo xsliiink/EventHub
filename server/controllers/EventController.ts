@@ -1,13 +1,16 @@
 import {Response,Request} from 'express';
+
 import  db  from '../db';
 import {dbRun,dbGet,dbExec} from '../db';
 import sqlite3 from 'sqlite3';
-import { hobbyRow,EventRow } from '@shared/types';
+
+import { hobbyRow,EventRow,EventsQuery,PaginatedResponse } from '@shared/types';
+import { AuthRequest } from '../types/index';
+
 import {updateEventSchema,createEventSchema} from '../validation/event'
 import {mapEventRowToSocialEvent} from '../mappers/event.mapper'
-import { AuthRequest } from '../types/index';
-import { EventsQuery } from '@shared/types';
 import { replaceEventImage } from '../services/event.service'
+import { getPaginationParams,formatPaginatedResponse } from '../utils/pagination';
 
 
 export const createEvent = async(
@@ -106,6 +109,7 @@ export const getEvents = (
     req : Request<Record<string,never>,Record<string,never>,Record<string,never>,EventsQuery>,
     res: Response
 ) => {
+    const {page,limit,offset} = getPaginationParams(req.query);
     const {location,hobby,official} = req.query;
     
         let query = `
@@ -134,7 +138,8 @@ export const getEvents = (
         }
     
     
-        query += ` GROUP BY e.id ORDER BY e.date ASC`;
+        query += ` GROUP BY e.id ORDER BY e.date ASC LIMIT ? OFFSET ?`;
+        params.push(limit,offset);
     
         db.all(query,params, (err: Error | null,rows: EventRow[]) => {
             if(err){
@@ -143,7 +148,7 @@ export const getEvents = (
             }
             
             const formatted = rows.map(mapEventRowToSocialEvent);
-            res.json(formatted);
+            res.json(formatPaginatedResponse(formatted,page,limit));
         })
 }
 

@@ -69,6 +69,8 @@ export interface EventsQuery{
     location?: string;
     hobby?: string;
     official?: string;
+    page?: string;
+    limit?: string;
 }
 
 export interface RegisterBody{
@@ -105,3 +107,9 @@ export interface EventFormData{
     location: string;
     isCreatorEvent : boolean;
 }
+
+export interface PaginatedResponse<T> {
+    data: T[],
+    nextPage: number | null;
+}
+

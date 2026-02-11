@@ -1,5 +1,5 @@
 import { useEffect,useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient,useMutationState } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient,useMutationState,useInfiniteQuery, } from '@tanstack/react-query';
 import { socket } from '../../socket';
 import { eventsService } from 'src/api/events.services';
 import type { SocialEvent,EventFormData,UpdateEventDTO} from '@shared/types';
@@ -14,10 +14,27 @@ export function useOptimisticEvents(location: string){
     const queryKey = useMemo(() => ['events', location], [location]);
 
     //Getting the data(server state),loading events
-    const {data :events = [], isLoading, isError} = useQuery({
+    const {
+        data,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isLoading,
+        isError,
+
+    } = useInfiniteQuery({
         queryKey,
-        queryFn: () => eventsService.getAll(location)
-    })
+        initialPageParam: 1,
+        queryFn: ({pageParam = 1}) =>
+             eventsService.getAll({location,page:String(pageParam),limit: '10'}),
+
+        getNextPageParam: (lastPage) => lastPage.nextPage,
+    });
+
+    const events =useMemo(() => 
+        data?.pages.flatMap(page => page.data) ?? []
+
+    ,[data]);
 
     //socket
     useEffect(() => {
