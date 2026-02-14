@@ -136,8 +136,7 @@ export const getEvents = (
             query += ` AND h.name = ?`;
             params.push(hobby);
         }
-    
-    
+
         query += ` GROUP BY e.id ORDER BY e.date ASC LIMIT ? OFFSET ?`;
         params.push(limit,offset);
     

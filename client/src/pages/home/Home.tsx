@@ -1,8 +1,9 @@
 import {Link} from 'react-router-dom';
 import './Home.css';
-import { useState} from 'react';
+import { useEffect, useState} from 'react';
 import {AiOutlinePlus} from 'react-icons/ai';
 import toast from 'react-hot-toast';
+import { useInView } from 'react-intersection-observer';
 
 import EventCard from '../../components/EventCard/EventCard';
 import EditEventModal from '../../components/editModal/EditEventModal';
@@ -45,6 +46,11 @@ export default function Home(){
         events,
         isLoading,
         isError,
+
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+
         pendingEventIds,
         isCreating,    
         updateEvent,
@@ -92,6 +98,16 @@ export default function Home(){
         }  
     }
 
+    const { ref, inView} = useInView({
+        threshold: 0.1
+    })
+
+    useEffect(() => {
+        if (inView && hasNextPage && !isFetchingNextPage){
+            fetchNextPage();
+        }
+    },[inView,hasNextPage,isFetchingNextPage,fetchNextPage])
+
     return (
         <div className="main-wrapper">
 
@@ -125,12 +141,14 @@ export default function Home(){
                 {/* Showing the events on a page */}
 
                 <div className="events-list">
-                    {isLoading && <p>Loading events...</p>}
+                    {/* Initial loading */}
+                    {isLoading && !isFetchingNextPage && <p>Loading events...</p>}
 
                     {!isLoading && events.length === 0 && (
                         <p>No events found</p>
                     )}
 
+                    {/* error handling */}
                     {isError && (
                         <div className="error-message">
                             <p>Oops! Could not load the events.Try renewing the page</p>
@@ -148,6 +166,15 @@ export default function Home(){
                             isPending={pendingEventIds.has(event.id)}
                         />
                     ))}
+                </div>
+
+                {/* Empty state */}
+                {!isLoading && events.length === 0 && <p>No events found</p>}
+
+                {/* Scroll anchor */}
+                <div ref={ref} className="scroll-anchor" style={{ height: '40px', textAlign: 'center' }}>
+                    {isFetchingNextPage && <p>Loading more events...</p>}
+                    {!hasNextPage && events.length > 0 && <p>You've reached the end! 🏁</p>}
                 </div>
 
                 {/* Edit event */}

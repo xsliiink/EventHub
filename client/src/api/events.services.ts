@@ -14,7 +14,7 @@ export const eventsService = {
         );
 
         const queryString = new URLSearchParams(cleanParams as Record<string,string>);
-        const res = await fetch(`${BASE_URL}/events?${queryString}`)
+        const res = await fetch(`${BASE_URL}?${queryString}`)
 
         if(!res.ok) {
             const errorBody = await res.json().catch(() => ({}));

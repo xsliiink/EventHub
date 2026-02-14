@@ -1,11 +1,15 @@
 import { useEffect,useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient,useMutationState,useInfiniteQuery, } from '@tanstack/react-query';
+import { useMutation, useQueryClient,useMutationState,useInfiniteQuery, type InfiniteData, } from '@tanstack/react-query';
+
 import { socket } from '../../socket';
+
 import { eventsService } from 'src/api/events.services';
-import type { SocialEvent,EventFormData,UpdateEventDTO} from '@shared/types';
+import type { SocialEvent, EventFormData, UpdateEventDTO,PaginatedResponse} from '@shared/types';
+
+import { updateInfiniteData } from '@/utils/rect-query';
 
 interface MutationContext {
-    previousEvents: SocialEvent[] | undefined;
+    previousData: InfiniteData<PaginatedResponse<SocialEvent>> | undefined;
 }
 
 export function useOptimisticEvents(location: string){
@@ -40,20 +44,38 @@ export function useOptimisticEvents(location: string){
     useEffect(() => {
 
         const handleCreated = (newEvent : SocialEvent) => {
-            queryClient.setQueryData(queryKey,(old: SocialEvent[] = []) => [...old,newEvent]);
+            //accessing the cash through queryKey 
+            queryClient.setQueryData<InfiniteData<PaginatedResponse<SocialEvent>>>(queryKey,(old) => {
+                if(!old) return old;
+                return{
+                    ...old,
+                    pages: old.pages.map((page,index) =>
+                        //we are only interested in the first page(index 0)
+                        index === 0 
+                        //adding event to the beginning of the page 1
+                        ? {...page,data: [newEvent,...page.data]}
+                        //other pages return as they are
+                        : page
+                    )
+                }
+            });
         }
          
         const handleDeleted = (deletedId : number) => {
               // Filtering the deleted event out of the events list
-            queryClient.setQueryData(queryKey,(old:SocialEvent[] = []) => 
-                old.filter(e => e.id !== deletedId)
+            queryClient.setQueryData<InfiniteData<PaginatedResponse<SocialEvent>>>(queryKey,(old) => 
+                updateInfiniteData(old, (events) =>
+                    events.filter(e => e.id !== deletedId)
+                )
             );
         };
 
         const handleUpdated = (updatedEvent: SocialEvent) =>{
             //Manually editing the cash and changing the event
-            queryClient.setQueryData(queryKey,(old:SocialEvent[] = []) => 
-                old.map(e => e.id === updatedEvent.id ? updatedEvent : e)
+            queryClient.setQueryData<InfiniteData<PaginatedResponse<SocialEvent>>>(queryKey,(old) => 
+                updateInfiniteData(old,(events) =>
+                    events.map(e =>e.id === updatedEvent.id ? updatedEvent : e)
+                )
             );
         };
 
@@ -82,26 +104,29 @@ export function useOptimisticEvents(location: string){
             await queryClient.cancelQueries({ queryKey });
 
             //saving the current state
-            const previousEvents = queryClient.getQueryData<SocialEvent[]>(queryKey);
+            const previousData = queryClient.getQueryData<InfiniteData<PaginatedResponse<SocialEvent>>>(queryKey);
 
             
-            queryClient.setQueryData(queryKey,(old: SocialEvent[] = []) =>
-                old.map(e => e.id === updatedData.id ? {
+            queryClient.setQueryData<InfiniteData<PaginatedResponse<SocialEvent>>>(queryKey,(old) =>
+                updateInfiniteData(old,(events) =>
+
+                    events.map(e => e.id === updatedData.id ? {
                     ...e,
                     ...updatedData,
                     image: e.image ? `${e.image.split('?')[0]}?v=${Date.now()}` : e.image
                 } : e)
+                )
             );
 
-            return {previousEvents};
+            return {previousData};
         },
              
         //Error handling
         onError: (err, _ , context) => {
 
             //overwriting cash with the old data if the error is caught
-            if (context?.previousEvents){
-                queryClient.setQueryData(queryKey,context.previousEvents);
+            if (context?.previousData){
+                queryClient.setQueryData(queryKey,context.previousData);
             }
             console.error('Error updating',err);
         },
@@ -123,20 +148,21 @@ export function useOptimisticEvents(location: string){
              //if there is an ongoing loading - cancel to prevent overlaps
             await queryClient.cancelQueries({ queryKey });
 
-            const previousEvents = queryClient.getQueryData<SocialEvent[]>(queryKey);
+            const previousData = queryClient.getQueryData<InfiniteData<PaginatedResponse<SocialEvent>>>(queryKey);
 
-            queryClient.setQueryData<SocialEvent[]>(queryKey, (old = []) => 
-                old.filter(event => event.id !== id)
+            //optimistically deleting using helper
+            queryClient.setQueryData<InfiniteData<PaginatedResponse<SocialEvent>>>(queryKey, (old,) =>
+                updateInfiniteData(old,(events) => events.filter(event =>event.id != id )) 
             );
 
-            return { previousEvents };
+            return { previousData };
         },
 
         //Rollback on Error
         onError: (err,id,context) => {
             //rollback if server returned an error
-            if (context?.previousEvents) {
-                queryClient.setQueryData(queryKey, context.previousEvents);
+            if (context?.previousData) {
+                queryClient.setQueryData(queryKey, context.previousData);
             }
             console.error(`Error deleting event ${id}:`, err.message);
         },
@@ -151,10 +177,18 @@ export function useOptimisticEvents(location: string){
         mutationFn: eventsService.create,
 
         onSuccess: (newlyCreatedEvent) => {
-            queryClient.setQueryData<SocialEvent[]>(queryKey, (old = []) => [
-            newlyCreatedEvent, 
-            ...old
-            ]);
+            queryClient.setQueryData<InfiniteData<PaginatedResponse<SocialEvent>>>(queryKey, (old) =>{
+                if(!old) return old;
+
+                return{
+                    ...old,
+                    pages: old.pages.map((page,index) =>
+                        index  === 0
+                        ? {...page,data: [newlyCreatedEvent,...page.data]}
+                        :page
+                    ),
+                };
+            });
         },
         
         onSettled: () => {
@@ -177,6 +211,10 @@ export function useOptimisticEvents(location: string){
         events: events ?? [],
         isLoading,
         isError,
+
+        fetchNextPage,     
+        hasNextPage,        
+        isFetchingNextPage,
 
         pendingEventIds: new Set([...pendingDeleteIds, ...pendingUpdateIds]),
         isCreating: createMutation.isPending,

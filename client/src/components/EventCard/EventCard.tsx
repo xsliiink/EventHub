@@ -1,5 +1,5 @@
 import './EventCard.css';
-import type { SocialEvent } from '../../../shared/types';
+import type { SocialEvent } from '@shared/types';
 
 interface EventCardProps{
     event: SocialEvent;
@@ -41,7 +41,7 @@ export default function EventCard({event,currentUserId,isPending,onDelete,onEdit
                         className="action-btn edit-button"
                         onClick={() =>  {
                             console.log("Кнопка нажата, ивент:", event.id);
-                            onEdit(event);
+                            onEdit?.(event);
                             }}>
                             Edit
                         </button>
@@ -51,7 +51,7 @@ export default function EventCard({event,currentUserId,isPending,onDelete,onEdit
                         className = 'action-btn delete-button'
                         onClick={() => {
                             if(window.confirm('Are you sure you want to delete this event?')){
-                                onDelete(id);
+                                onDelete?.(id);
                             }
                         }}
                     >
