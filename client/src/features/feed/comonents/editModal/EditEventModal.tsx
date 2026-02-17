@@ -1,6 +1,6 @@
 import React,{useState} from 'react';
-import { SocialEvent } from '../../types';
-import type { EventUpdateDTO } from '../../../server/validation/event';
+import { SocialEvent } from '@shared/types';
+import type { EventUpdateDTO } from '../../../../../../server/validation/event';
 import './EditEventModal.css';
 
 interface EditEventModalProps {

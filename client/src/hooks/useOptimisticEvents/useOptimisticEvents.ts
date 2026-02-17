@@ -220,8 +220,8 @@ export function useOptimisticEvents(location: string){
         isCreating: createMutation.isPending,
 
         //Mutations
-        updateEvent: updateMutation.mutate,
-        deleteEvent: deleteMutation.mutate,
+        updateEvent: updateMutation.mutateAsync,
+        deleteEvent: deleteMutation.mutateAsync,
         eventCreate : createMutation.mutateAsync,
         
     }

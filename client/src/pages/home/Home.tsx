@@ -1,12 +1,12 @@
-import {Link} from 'react-router-dom';
+import MainLayout from '../../layouts/MainLayout'
+import CreateEventModal from '../../features/feed/comonents/CreateEventModal/CreateEventModal';
+import FeedSection from '../../features/feed/comonents/FeedSection/FeedSection'
+
 import './Home.css';
 import { useEffect, useState} from 'react';
-import {AiOutlinePlus} from 'react-icons/ai';
+
 import toast from 'react-hot-toast';
 import { useInView } from 'react-intersection-observer';
-
-import EventCard from '../../components/EventCard/EventCard';
-import EditEventModal from '../../components/editModal/EditEventModal';
 
 import { useHobbies } from '../../hooks/useHobbies'
 import { useOptimisticEvents } from '../../hooks/useOptimisticEvents';
@@ -108,196 +108,40 @@ export default function Home(){
         }
     },[inView,hasNextPage,isFetchingNextPage,fetchNextPage])
 
-    return (
-        <div className="main-wrapper">
+        return (
+        <MainLayout>
 
-            <div className="header">
-                <div className='logo'>
-                    <Link to = "/" className='logo-text'>  🚀 MySocialApp</Link>
-                </div>
-                <nav className='nav'>
-                    <Link to= '/' className='nav-link'>Map</Link>
-                    <Link to= '/' className='nav-link'>Function2</Link>
-                    <Link to= '/' className='nav-link'>Function3</Link>
-                </nav>
-            </div>
+            <FeedSection
+            events={events}
+            isLoading={isLoading}
+            isError={isError}
+            isFetchingNextPage={isFetchingNextPage}
+            hasNextPage={hasNextPage}
+            fetchNextPage={fetchNextPage}
+            pendingEventIds={pendingEventIds}
+            currentUserId={currentUserId}
+            deleteEvent={deleteEvent}
+            updateEvent={updateEvent}
+            editingEvent={editingEvent}
+            setEditingEvent={setEditingEvent}
+            scrollRef={ref}
+            onCreateClick={() => setShowModal(true)}
+            />
 
+            <CreateEventModal
+            isOpen={showModal}
+            onClose={() => setShowModal(false)}
+            formData={formData}
+            setFormData={setFormData}
+            step={step}
+            setStep={setStep}
+            hobbies={hobbies}
+            hobbiesLoading={hobbiesLoading}
+            isCreating={isCreating}
+            onSubmit={handleFinishCreate}
+            handleHobbyChange={handleHobbyChange}
+            />
 
-            <div className="container">
-                <h2>The Main Page</h2>
-
-                <div className='filters'>
-                    <input
-                    type="text" 
-                    placeholder='Filter by Location'
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    />
-
-                    {/* You can add more filters here in the future */}
-
-                </div>
-                
-                {/* Showing the events on a page */}
-
-                <div className="events-list">
-                    {/* Initial loading */}
-                    {isLoading && !isFetchingNextPage && <p>Loading events...</p>}
-
-                    {!isLoading && events.length === 0 && (
-                        <p>No events found</p>
-                    )}
-
-                    {/* error handling */}
-                    {isError && (
-                        <div className="error-message">
-                            <p>Oops! Could not load the events.Try renewing the page</p>
-                        </div>
-                    )}
-
-                    {!isLoading &&
-                        events.map(event => (
-                        <EventCard
-                            key={event.id}
-                            event={event}
-                            onDelete={deleteEvent}
-                            onEdit={(ev: SocialEvent) => setEditingEvent(ev)}
-                            currentUserId={currentUserId}
-                            isPending={pendingEventIds.has(event.id)}
-                        />
-                    ))}
-                </div>
-
-                {/* Empty state */}
-                {!isLoading && events.length === 0 && <p>No events found</p>}
-
-                {/* Scroll anchor */}
-                <div ref={ref} className="scroll-anchor" style={{ height: '40px', textAlign: 'center' }}>
-                    {isFetchingNextPage && <p>Loading more events...</p>}
-                    {!hasNextPage && events.length > 0 && <p>You've reached the end! 🏁</p>}
-                </div>
-
-                {/* Edit event */}
-                {editingEvent && (
-                    <EditEventModal 
-                        event={editingEvent} 
-                        onClose={() => setEditingEvent(null)} 
-                        onSave={async (data) => {
-                            await updateEvent(data);
-                            setEditingEvent(null);
-                        }}
-                    />
-                )}
-                
-                {/* The floating button */}
-                <button className='fab' onClick={() => setShowModal(true)}>
-                    <AiOutlinePlus size={28} />
-                </button>
-
-                {/* Modal Window */}
-
-                {showModal && (
-                    <div className='modal-overlay' onClick={() => setShowModal(false)}>
-                        <div className="modal" onClick={(e) => e.stopPropagation()}>
-                            <h3>Create an event (Step {step})</h3>
-
-                            {step === 1 && (
-                                <div className='step'>
-                                    <input 
-                                    type="text"
-                                    placeholder='Event name'
-                                    value={formData.title}
-                                    onChange={(e : React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => 
-                                        setFormData({...formData,title: e.target.value})
-                                    }
-                                    />
-                                    <textarea
-                                    placeholder='Description'
-                                    value={formData.description}
-                                    onChange={(e : React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-                                        setFormData({...formData,description: e.target.value})
-                                    }
-                                    />
-                                    <button onClick={() => setStep(step + 1)}>Next</button>
-                                </div>
-                            )}
-
-                            {/* Hobbies- Step2 */}
-                        
-                            {step === 2 && (
-                                <div className='step'>
-                                     {hobbiesLoading && <p>Loading hobbies...</p>}
-
-                                    
-                                    {!hobbiesLoading && 
-                                     hobbies.map((hobby) =>(
-                                        <label key={hobby.id}>
-                                            <input 
-                                            type="checkbox"
-                                            checked ={formData.selectedHobbies.includes(hobby.name)}
-                                            onChange={() => handleHobbyChange(hobby.name)}
-                                            />
-                                            {hobby.name}
-                                        </label>
-                                    ))}
-                                    <button onClick={() => setStep(step - 1)}>Back</button>
-                                    <button onClick={() => setStep(step + 1)}>Next</button>
-                                </div>
-                            )}
-
-                            {/* Image upload */}
-
-                            {step === 3 && (
-                                <div className='step'>
-                                    <input 
-                                    type="file" 
-                                    onChange={(e : React.ChangeEvent<HTMLInputElement>) => {
-                                        const file = e.target.files ? e.target.files[0] : null;
-                                        setFormData({...formData,eventImage: file})
-                                    }}
-                                    />
-                                    <button onClick={() => setStep (step - 1)}>Back</button>
-                                    <button onClick={() => setStep (step + 1)}>Next</button>
-                                </div>
-                            )}
-
-                            {/* Date and time */}
-
-                            {step === 4 && (
-                                <div className='step'>
-                                    <input 
-                                    type="date" 
-                                    value={formData.date}
-                                    onChange={(e : React.ChangeEvent<HTMLInputElement>) =>
-                                        setFormData({...formData,date : e.target.value})
-                                        }
-                                    />
-                                    <input 
-                                    type="text" 
-                                    placeholder='Location'
-                                    value={formData.location}
-                                    onChange={(e : React.ChangeEvent<HTMLInputElement>) => 
-                                        setFormData({...formData,location: e.target.value})
-                                        }
-                                    />
-                                    <button onClick={() => setStep(step - 1)}>Back</button>
-                                    <button
-                                        onClick={handleFinishCreate}
-                                        disabled = {isCreating}
-                                        className={`btn-finish ${isCreating ? 'loading' : ''}`}
-                                     >
-                                        {isCreating ? 'Creating...' : 'Finish'}
-                                     </button>
-                                </div>
-                            )}
-
-                        </div>
-                    </div>
-                )}
-
-
-            </div>
-            <div className="footer"></div>
-        </div>
-    )
+        </MainLayout>
+        );
 }
