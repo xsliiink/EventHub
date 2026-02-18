@@ -1,33 +1,29 @@
-import { GiFlexibleLamp } from 'react-icons/gi';
 import Sidebar from '../shared/components/Sidebar/Sidebar'
 import TopBar from '../shared/components/TopBar/TopBar'
+import './MainLayout.css';
 
 interface MainLayoutProps{
     children: React.ReactNode;
 }
 
-export default function MainLayout({ children }: MainLayoutProps){
-    return (
-        <div className="min-h-screen bg-neutral-50 flex">
-            {/* Sidebar */}
-            <Sidebar/>
+export default function MainLayout({ children }: MainLayoutProps) {
+  return (
+    <div className="layout-wrapper">
+      <aside className="layout-sidebar">
+        <Sidebar />
+      </aside>
 
-            {/* Main Area */}
-            <div className="flex-1 flex flex-col">
+      <div className="layout-content-area">
+        <header className="layout-header">
+          <TopBar />
+        </header>
 
-            {/* Topbar */}
-            <TopBar/>
-
-            {/* content */}
-            <main className='flex-1 overflow-y-auto'>
-                <div className="max-w-6xl mx-auto px-8 py-8">
-                    {children}
-                </div>
-            </main>
-
-            </div>
-
-
-        </div>
-    )
+        <main className="layout-main">
+          <div className="layout-container">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 }

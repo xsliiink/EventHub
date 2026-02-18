@@ -1,0 +1,33 @@
+.topbar-wrapper{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    height: 64px;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0 24px;
+}
+
+.search-bar{
+    flex: 4;
+    height: 36px;
+    box-sizing: border-box;
+    
+    margin: 0%;
+    margin-bottom: 0%;
+
+    font-size: medium;
+    line-height: normal;
+    padding: 5px;
+}
+
+.filters-bttn{
+    height: 36px;
+    box-sizing: border-box;
+    
+    margin: 0%;
+
+    font-size: medium;
+    line-height: normal;
+    padding: 5px;
+}

@@ -1,0 +1,46 @@
+/* Main wrapper */
+.layout-wrapper {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden; 
+}
+
+
+.layout-sidebar {
+  width: 320px;
+  flex-shrink: 0;
+  background: white;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Правая часть (Шапка + Контент) */
+.layout-content-area {
+  flex: 1; /* Занимает всё свободное место */
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Чтобы контент внутри не распирал флекс */
+}
+
+.layout-header {
+  height: 80px;
+  flex-shrink: 0;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Область скролла */
+.layout-main {
+  flex: 1;
+  overflow-y: auto; /* Скролл только тут! */
+  background: #f8fafc;
+}
+
+/* Центрирующий контейнер для карточек */
+.layout-container {
+  max-width: 1000px; /* Ограничиваем ширину ленты */
+  margin: 0 auto;    /* Центрируем */
+  padding: 40px 20px;
+}

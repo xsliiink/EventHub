@@ -1,44 +1,59 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from "react-router-dom";
+import './Sidebar.css'
 
-export default function Sidebar(){
-    return(
-        <aside className='hidden md:flex w-64 bg-white border-r border-neutral-200 p-6 flex-col justify-between'>
 
-            <div>
-                <h1 className="text-xl font-semibold mb-10 tracking-tight">
-                    EventHub
-                </h1>
+export default function Sidebar() {
+  const location = useLocation();
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const avatarUrl = user.avatar ? `/uploads/avatars/${user.avatar}` : undefined;
 
-                <nav className="space-y-2 text-sm">
-                    <Link
-                        to='/'
-                        className='block px-3 py-2 rounded-lg hover:bg-neutral-100 transition'
-                    >
-                        Feed
-                    </Link>
+  const navItems = [
+    { label: 'Feed', path: '/' },
+    { label: 'Groups', path: '/groups', isMock: true },
+    { label: 'Messages', path: '/messages', isMock: true },
+    { label: 'Settings', path: '/settings', isMock: true },
+  ];
 
-                     <div className="px-3 py-2 rounded-lg bg-blue-50 text-blue-700">
-                        Groups (mock)
-                    </div>
+  return (
+    <aside className="sidebar">
+    {/* Блок Логотипа */}
+    <div className="sidebar-logo-container">
+        <h1 className="sidebar-logo">EventHub <span className="logo-emoji">⚡</span></h1>
+    </div>
 
-                     <div className="px-3 py-2 rounded-lg bg-green-50 text-green-700">
-                        Messages (mock)
-                    </div>
+    <hr className="sidebar-divider" />
 
-                    <div className="px-3 py-2 rounded-lg bg-purple-50 text-purple-700">
-                        Resources (mock)
-                    </div>
+    {/* Блок Профиля */}
+    <div className="sidebar-profile">
+        <div className="sidebar-avatar-wrapper">
+        <img src={avatarUrl} alt="Avatar" className="sidebar-avatar-img" />
+        </div>
+        <div className="sidebar-user-info">
+        <div className="sidebar-username">{user.username}</div>
+        <div className="sidebar-status">ONLINE</div>
+        </div>
+    </div>
 
-                    <div className="px-3 py-2 rounded-lg bg-yellow-50 text-yellow-700">
-                        Settings (mock)
-                    </div>
-                </nav>
-            </div>
+    <hr className="sidebar-divider" />
 
-            {/* Logout button */}
-            <button className="text-xs text-neutral-400 hover:text-neutral-600 transition">
-                Log out
-            </button>
-        </aside>
-    )
+    {/* Навигация (теперь она прижата выше) */}
+    <nav className="sidebar-nav">
+        {navItems.map((item) => (
+        <Link
+            key={item.label}
+            to={item.isMock ? '#' : item.path}
+            className={`sidebar-link ${location.pathname === item.path ? 'active' : ''}`}
+        >
+            {item.label}
+            {item.isMock && <span className="soon-tag">Soon</span>}
+        </Link>
+        ))}
+    </nav>
+
+    {/* Кнопка выхода в самом низу */}
+    <div className="sidebar-footer">
+        <button className="sidebar-logout">Log out</button>
+    </div>
+    </aside>
+  );
 }

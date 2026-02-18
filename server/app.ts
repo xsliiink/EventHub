@@ -18,6 +18,9 @@ app.use(express.urlencoded({ extended: true }));
 const eventsPath = path.join(process.cwd(), 'uploads', 'events');
 app.use('/uploads/events', express.static(eventsPath));
 
+const avatarsPath = path.join(process.cwd(), 'uploads', 'avatars');
+app.use('/uploads/avatars', express.static(avatarsPath));
+
 
 app.use('/api/auth',AuthRoutes);
 app.use('/api/events',EventRoutes);
