@@ -6,6 +6,10 @@
 
 Users can create their own events, attach images, select hobbies, edit or delete their events, and browse official or community events in real time.
 
+<p align="center">
+  <img src="./screenshots/event_hub.png" alt="EventHub Banner" width="100%">
+</p>
+
 ---
 
 ## ⚙️ Tech Stack
@@ -13,6 +17,7 @@ Users can create their own events, attach images, select hobbies, edit or delete
 ### 🖥️ Frontend
 - **React + TypeScript**
 - **Vite** — fast build & hot reload
+- **TanStack Query (React Query)** — server state management & optimistic updates
 - **TailwindCSS** — modern styling
 - **shadcn/ui + Lucide icons** — UI components
 - **Framer Motion** — animations
@@ -40,6 +45,7 @@ Users can create their own events, attach images, select hobbies, edit or delete
 
 The project was refactored to follow clean backend architecture and stable API design.
 
+⚙️ Backend
 ✅ **Modular Routing** — Routes, controllers, services and middlewares are fully separated  
 ✅ **Strict Type Safety** — No `any` types, shared frontend/backend contracts  
 ✅ **Zod Validation Layer** — All create/update payloads validated server-side  
@@ -47,6 +53,14 @@ The project was refactored to follow clean backend architecture and stable API d
 ✅ **Mapper Layer** — Dedicated DB → API mappers for consistent responses  
 ✅ **Async/Await DB Flow** — Predictable database operations  
 ✅ **Code Quality (DX)** — ESLint & Prettier integration  
+
+💻 Frontend
+✅ **Feature-Based Structure** — Scalable organization by domain features (e.g., features/feed)
+✅ **Optimistic UI Engine** — Instant feedback via TanStack Query with automated rollback
+✅ **Centralized API Layer** — Decoupled service logic for maintainable network calls
+✅ **Global State & Hooks** — Custom hooks for socket connections and state orchestration
+✅ **Strict Linting** — Enforced zero-any policy and unused-vars protection via ESLint
+✅ **Automated Seeding** — Custom script to generate 50+ realistic events for performance testing
 
 ---
 
@@ -65,17 +79,16 @@ The project was refactored to follow clean backend architecture and stable API d
 
 ## 🚀 Features
 
-✅ User registration & JWT authentication  
-✅ Create events with image upload  
-✅ Update events (title, description, date, location, image)  
-✅ Delete events with ownership checks  
-✅ Attach multiple hobbies per event  
-✅ Filter events by location  
-✅ Browse official & community events  
-✅ Real-time updates via WebSockets  
-✅ Adaptive event cards grid  
-✅ Component-based UI architecture  
-
+✅ **User Authentication** — Secure registration & login using JWT tokens
+✅ **Optimistic Event Management** — Create, update, and delete events with instant UI feedback
+✅ **Infinite Scrolling** — Smoothly browse through a large feed of community and official events
+✅ **Advanced Media Handling** — Image uploads for events and user avatars via Multer
+✅ **Smart Filtering** — Filter events by location and multiple hobby categories
+✅ **Real-time Synchronization** — Live updates and notifications powered by Socket.io
+✅ **Hobby Ecosystem** — Attach and manage multiple hobbies for every event
+✅ **Responsive Grid System** — Adaptive event cards designed for both desktop and mobile
+✅ **Automated Seeding** — One-command script to populate the app with 50+ realistic data points
+✅ **Ownership Protection** — Strict server-side checks for event modification and deletion
 ---
 
 ## 🧪 Testing
@@ -104,17 +117,33 @@ cd server && npx jest --runInBand
 📁 Project Structure
 ├── 📱 client (Frontend)
 │   ├── src
-│   │   ├── components   # Reusable UI components
-│   │   ├── pages        # App views (Home, Profile, etc.)
-│   │   └── App.tsx      # Main logic & routing
-│   └── vite.config.ts
+│   │   ├── 📁 api          # API definition & Axios services
+│   │   ├── 📁 features     # Feature-based modules (Feed, CreateEvent, etc.)
+│   │   ├── 📁 hooks        # Global custom hooks (useOptimisticEvents, etc.)
+│   │   ├── 📁 layouts      # Page layouts (Navbar, Sidebar wrappers)
+|   |   ├── 📁 pages        # Page components (Home, Profile, Auth)
+|   |   ├── 📁 shared       # Shared types, constants and contracts
+|   |   ├── 📁 styles       # Global SCSS/CSS & Theme configuration
+|   |   ├── 📁 utils        # Helper functions and formatters
+│   ├── jest.config.ts      # Test environment configuration
+|   ├── eslint.config.js    # Strict linting rules (No any, unused-vars)
+|   └── tsconfig.json       # TypeScript configuration with path aliases (@/*)
+│
 ├── ⚙️ server (Backend)
-│   ├── app.ts           # Express & API logic
-│   ├── db.ts            # SQLite connection
-│   ├── middleware       # JWT & Auth logic
-│   ├── tests            # Jest integration tests
-│   └── uploads          # User images (Avatars/Events)
-├── 🖼️ screenshots       # UI previews
+│   ├── 📁config             # App & environment configuration
+│   ├── 📁routes             # HTTP route definitions
+│   ├── 📁controllers        # Request handling & orchestration
+│   ├── 📁services           # Business logic layer
+│   ├── 📁mappers            # DB → API response mapping
+│   ├── 📁validation         # Zod schemas for request validation
+│   ├── 📁middleware         # Auth, JWT, error handling
+│   ├── 📁types              # Server‑only TypeScript types
+│   ├── 📁tests              # Integration tests (Jest, Supertest)
+│   ├── 📁uploads            # Uploaded images (events, avatars)
+│   ├── app.ts             # Express app setup
+│   └── db.ts              # SQLite database connection
+│
+├── 🖼️ screenshots         # Runtime demos (GIF / images)
 └── 📄 package.json
 ```
 
@@ -122,15 +151,18 @@ cd server && npx jest --runInBand
 
 ## 🖼️ UI & UX
 
-- Clean and modern interface  
-- Event cards with images, location, date, and hobbies  
-- Smooth transitions and animations  
-- Mobile responsive design  
+* **Optimistic Updates (TanStack Query)**: Actions such as creating, editing, or deleting events are reflected in the UI immediately. In case of server failure, a robust **Rollback mechanism** restores the previous state, ensuring data integrity without blocking the user with loaders.
+* **Infinite Scrolling**: Seamless content delivery as the user scrolls, optimized to prevent DOM overstacking and ensure high FPS even with a large number of events.
+* **Modern Component Architecture**: Built with `shadcn/ui` and `TailwindCSS` for a consistent, professional look and feel.
+* **Fluid Animations**: Powered by `Framer Motion` to provide meaningful visual feedback during state changes and navigation.
 
 **Example UI:**
-| Home Page | Event Details |
-|------------|----------------|
-| ![Home Page](./screenshots/3main.png) | ![Add Event](./screenshots/3add_event.png) |
+
+| Action / Feature | Preview |
+|:--- |:---:|
+| **Infinite Scroll** <br> Infinite scroll | ![InfiniteScroll](./screenshots/infinite_scroll.gif) |
+| **Create/Delete Event** <br> Instant creation and deletion of events. | ![Create/Delete](./screenshots/create_delete.gif) |
+| **Update Event** <br> Optimistic Event Update. | ![Update](./screenshots/edit_event.gif) |
 
 ---
 
@@ -141,7 +173,11 @@ cd server && npx jest --runInBand
 cd server && npm install
 cd ../client && npm install
 
-# 2. Run backend and frontend
+# 2.This will generate 50+ events(Required for Infinite Scroll)
+cd ../server && npx ts-node seed.ts
+
+
+# 3. Run backend and frontend
 cd server && npm run dev
 cd ../client && npm run dev
 App will be available at:
