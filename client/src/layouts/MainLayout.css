@@ -40,7 +40,7 @@
 
 /* Центрирующий контейнер для карточек */
 .layout-container {
-  max-width: 1000px; /* Ограничиваем ширину ленты */
+  /* max-width: 1000px; */
   margin: 0 auto;    /* Центрируем */
   padding: 40px 20px;
 }

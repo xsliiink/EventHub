@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import './styles/global.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {

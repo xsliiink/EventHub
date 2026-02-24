@@ -20,16 +20,16 @@
   animation: fadeIn 0.3s ease;
 }
 
-h2 {
+.modal h2 {
   margin-bottom: 1rem;
   font-size: 1.5rem;
   color: #333;
 }
 
-input[type="text"],
-input[type="password"],
-input[type="file"],
-textarea {
+.modal input[type="text"],
+.modal input[type="password"],
+.modal input[type="file"],
+.modal textarea {
   width: 100%;
   padding: 0.6rem;
   margin-bottom: 1rem;
@@ -38,12 +38,12 @@ textarea {
   font-size: 1rem;
 }
 
-textarea {
+.modal textarea {
   resize: vertical;
   min-height: 80px;
 }
 
-button {
+.modal button {
   padding: 0.6rem 1.2rem;
   margin-right: 0.5rem;
   background-color: #4f46e5;
@@ -55,17 +55,17 @@ button {
   transition: background-color 0.2s;
 }
 
-button:hover {
+.modal button:hover {
   background-color: #3730a3;
 }
 
-label {
+.modal label {
   display: flex;
   align-items: center;
   margin-bottom: 0.5rem;
 }
 
-label input {
+.modal label input {
   margin-right: 0.5rem;
 }
 

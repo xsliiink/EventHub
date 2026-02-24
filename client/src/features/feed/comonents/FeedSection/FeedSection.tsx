@@ -1,5 +1,5 @@
-import EventCard from '../EventCard/EventCard';
 import EditEventModal from '../editModal/EditEventModal';
+import EventGrid from '../EventGrid/EventGrid';
 
 import type { SocialEvent,UpdateEventDTO } from '@shared/types';
 import type { FetchNextPageOptions } from '@tanstack/react-query';
@@ -39,29 +39,18 @@ export default function FeedSection({
 
   return (
     <>
-      {isLoading && !isFetchingNextPage && <p>Loading events...</p>}
-
-      {isError && <p>Could not load events.</p>}
-
-      {!isLoading && events.length === 0 && <p>No events found</p>}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {events.map(event => (
-          <EventCard
-            key={event.id}
-            event={event}
-            onDelete={deleteEvent}
-            onEdit={(ev) => setEditingEvent(ev)}
-            currentUserId={currentUserId}
-            isPending={pendingEventIds.has(event.id)}
-          />
-        ))}
-      </div>
-
-      <div ref={scrollRef} className="h-10 text-center">
-        {isFetchingNextPage && <p>Loading more...</p>}
-        {!hasNextPage && events.length > 0 && <p>You've reached the end 🏁</p>}
-      </div>
+      <EventGrid 
+        events={events}
+        isLoading={isLoading}
+        isError={isError}
+        isFetchingNextPage={isFetchingNextPage}
+        hasNextPage={hasNextPage}
+        scrollRef={scrollRef}
+        deleteEvent={deleteEvent}
+        setEditingEvent={setEditingEvent}
+        currentUserId={currentUserId}
+        pendingEventIds={pendingEventIds}
+      />
 
       {editingEvent && (
         <EditEventModal
@@ -75,8 +64,9 @@ export default function FeedSection({
       )}
 
       <button
-        className="fixed bottom-8 right-8 w-12 h-12 bg-black text-white rounded-full"
+        className="fab-add-event"
         onClick={onCreateClick}
+        title='Create Event'
       >
         +
       </button>

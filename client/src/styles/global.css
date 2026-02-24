@@ -1,0 +1,58 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+
+/* Remove all margins */
+* {
+  margin: 0;
+}
+
+body {   
+    /* Fallback State */
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+               'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+               'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+
+  -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* global tokens */
+:root{
+    --color-primary: #6366F1;
+    --color-primary-hover: #4F46E5;
+    --color-primary-soft: #EEF2FF;
+    --color-bg: #F8FAFC;
+    --color-surface: #FFFFFF;
+    --color-border: #E2E8F0;
+    --color-text: #0F172A;
+    --color-text-secondary: #64748B;
+
+    --color-sidebar-bg: #0F172A;
+    --color-sidebar-border: #1E293B;
+    --color-sidebar-text: #E2E8F0;
+    --color-sidebar-text-muted: #94A3B8;
+    --color-sidebar-hover: #1E293B;
+    --color-on-primary: #FFFFFF;
+
+    --color-success: #22C55E;
+    --color-danger: #EF4444;
+    --color-warning: #F59E0B;
+
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 16px;
+    --space-4: 24px;
+    --space-5: 32px;
+}

@@ -29,7 +29,7 @@ export default function Home(){
     const currentUserId = currentUser ? currentUser.id : null;
     const [showModal,setShowModal] = useState(false);
     const [step,setStep] = useState(1);
-    const [location,setLocation] = useState('');
+    const [location] = useState('');
     const [editingEvent,setEditingEvent] = useState<SocialEvent | null>(null);
     const [formData,setFormData] = useState<EventFormData>({
         title: '',

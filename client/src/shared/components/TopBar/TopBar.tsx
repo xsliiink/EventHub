@@ -3,19 +3,16 @@ import './TopBar.css'
 export default function TopBar() {
   return (
     <div className="topbar-wrapper">
-
-      {/* Search */}
+      <div className="search-group">
       <input
         type="text"
         placeholder="Search events..."
-        className="search-bar"
+        className="search-input"
       />
-
-      {/* Filters */}
-      <button className="filters-bttn">
+      <button className="filters-button">
         Filters
       </button>
-
     </div>
+  </div>
   );
 }

@@ -190,8 +190,8 @@ describe('UseOptimisticEvents', () => {
                 id : 1,
                 title: 'Broken Update'
             });
-            }   catch(e){
-
+            }   catch(error: Error | unknown ){
+                expect(error).toBeDefined();
             }     
         });
 

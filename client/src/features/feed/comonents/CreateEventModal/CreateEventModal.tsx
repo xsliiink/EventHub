@@ -1,4 +1,4 @@
-import type { EventFormData,SocialEvent } from "@shared/types";
+import type { EventFormData } from "@shared/types";
 
 interface CreateEventModalProps{
     isOpen: boolean;

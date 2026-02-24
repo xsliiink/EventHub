@@ -1,0 +1,32 @@
+.event-grid-container {
+  display: grid;
+  /* Устанавливаем колонки. minmax(450px) гарантирует, что карточки не будут слишком узкими */
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+  gap: 24px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.grid-message {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.1rem;
+  color: var(--color-sidebar-text-muted);
+}
+
+.pagination-trigger {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  color: var(--color-sidebar-text-muted);
+  font-weight: 500;
+}
+
+/* Адаптивность: на маленьких экранах убираем грид в 1 колонку */
+@media (max-width: 500px) {
+  .event-grid-container {
+    grid-template-columns: 1fr;
+  }
+}

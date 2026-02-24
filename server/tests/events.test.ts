@@ -63,15 +63,26 @@ describe('/Events API', () =>{
         expect(res.body).toHaveProperty('error');
     })
 
-    it('should get all events', async () => {
+    it('should return a paginated list of events with metadata', async () => {
         const res = await request(app).get('/api/events');
 
         expect(res.status).toBe(200);
-        expect(Array.isArray(res.body)).toBe(true);
+        
+        //checking if response is an array of events
+        expect (typeof res.body).toBe('object');
 
-        if(res.body.length > 0){
-            expect(res.body[0]).toHaveProperty('id');
-            expect(res.body[0]).toHaveProperty('title');
+        //checking if response has events property
+        expect(res.body).toHaveProperty('data');
+
+        //checking if events is an array
+        expect(Array.isArray(res.body.data)).toBe(true);
+
+        if(res.body.data.length > 0){
+             expect(res.body.data[0]).toHaveProperty('id');
+             expect(res.body.data[0]).toHaveProperty('title');
+             expect(res.body.data[0]).toHaveProperty('description');
+             expect(res.body.data[0]).toHaveProperty('location');
+             expect(res.body.data[0]).toHaveProperty('date');
         }
     });
 
@@ -143,7 +154,7 @@ describe('/Events API', () =>{
         //Ensure event is gone from GET /events
          const getRes = await request(app).get('/api/events');
 
-        const deletedEvent = getRes.body.find(
+        const deletedEvent = getRes.body.data.find(
             (e: { id: number }) => e.id === eventId
         );
 

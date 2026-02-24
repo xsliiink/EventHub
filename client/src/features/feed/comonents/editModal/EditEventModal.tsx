@@ -1,12 +1,12 @@
 import React,{useState} from 'react';
-import { SocialEvent } from '@shared/types';
-import type { EventUpdateDTO } from '../../../../../../server/validation/event';
+import type { SocialEvent } from '@shared/types';
+import type { UpdateEventDTO } from '@shared/types';
 import './EditEventModal.css';
 
 interface EditEventModalProps {
     event: SocialEvent;
     onClose: () => void;
-    onSave: (updatedData: SocialEvent) => Promise<void>;
+    onSave: (updatedData: UpdateEventDTO) => Promise<void>;
 }
 
 export default function EditEventModal({
@@ -15,7 +15,8 @@ export default function EditEventModal({
     onSave
 }: EditEventModalProps) {   
 
-    const [formData,setFormData] = useState<EventUpdateDTO>({
+    const [formData,setFormData] = useState<UpdateEventDTO>({
+        id: event.id,
         title: event.title,
         description: event.description,
         date: event.date,
@@ -26,10 +27,7 @@ export default function EditEventModal({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        await onSave({
-           ...formData,
-            id: event.id
-        });
+        await onSave(formData)
     };
 
     return(
@@ -37,56 +35,64 @@ export default function EditEventModal({
             <div className="modal-content" onClick ={e => e.stopPropagation()}>
                 <h3>Edit Event</h3>
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} className='modal-form'>
                     {/* Title */}
-                    <input
-                     value={formData.title}
-                     onChange = {e => setFormData({...formData, title: e.target.value})}
-                     placeholder="Title" 
-                     />
+                    <div className="form-group">
+                        <input
+                            value={formData.title}
+                            onChange = {e => setFormData({...formData, title: e.target.value})}
+                            placeholder="Title" 
+                        />
+                    </div>
+                    
 
                     {/* Description */}
-                    <textarea
-                        value={formData.description}
-                         onChange = {e => setFormData({...formData, description: e.target.value})}
-                         placeholder="Description" 
-                     />
+                    <div className="form-group">
+                        <textarea
+                            value={formData.description ?? ''}
+                            onChange = {e => setFormData({...formData, description: e.target.value})}
+                            placeholder="Description" 
+                        />
+                    </div>
+                    
 
-                    {/* Date */}
+                    {/* Date and Location*/}
+                    <div className="form-row">
+                        <input
+                            type="date"
+                            value = {formData.date ?? ''}
+                            onChange = {e =>
+                                setFormData({...formData,date: e.target.value})
+                            } 
+                         />
 
                     <input
-                     type="date"
-                     value = {formData.date ?? ''}
-                     onChange = {e =>
-                        setFormData({...formData,date: e.target.value})
-                     } 
-                     />
-
-                    {/* Location */}
-                    <input
-                     type="text"
-                     value = {formData.location ?? ''}
-                     onChange = {e =>
-                        setFormData({...formData,location: e.target.value})
-                     }
-                     placeholder ='Location'
+                        type="text"
+                        value = {formData.location ?? ''}
+                        onChange = {e =>
+                            setFormData({...formData,location: e.target.value})
+                        }
+                        placeholder ='Location'
                       />
+                    </div>
 
                     {/* Image */}
-                    <input
-                     type="file"
-                     accept="image/*"
-                     onChange={e =>
-                        setFormData({
-                            ...formData,
-                            eventImage: e.target.files?.[0] ?? null
-                            })
-                        }
-                     />
+                    <div className="form-group">
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={e =>
+                                setFormData({
+                                    ...formData,
+                                    eventImage: e.target.files?.[0] ?? null
+                                    })
+                                }
+                        />
+                    </div>
 
                      <div className="modal-actions">
-                        <button type ='submit'>Save</button>
-                        <button type ='button' onClick={onClose}>Cancel</button>
+                        <button type ='submit' className='btn-save'>Save</button>
+                        <button type ='button' onClick={onClose} className='btn-cancel'>Cancel</button>
                      </div>
                 </form>
             </div>

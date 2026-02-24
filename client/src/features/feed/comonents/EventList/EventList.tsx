@@ -7,19 +7,15 @@ export const EventList = ({location} : {location : string}) => {
     const {
         events,
         isLoading,
-        isError,
 
         fetchNextPage,     
         hasNextPage,        
         isFetchingNextPage,
 
         pendingEventIds,
-        isCreating,
-
         //Mutations
         updateEvent,
         deleteEvent,
-        eventCreate,
         
     } = useOptimisticEvents(location);
 

@@ -4,7 +4,7 @@ import  db  from '../db';
 import {dbRun,dbGet,dbExec} from '../db';
 import sqlite3 from 'sqlite3';
 
-import { hobbyRow,EventRow,EventsQuery,PaginatedResponse } from '@shared/types';
+import { hobbyRow,EventRow,EventsQuery } from '@shared/types';
 import { AuthRequest } from '../types/index';
 
 import {updateEventSchema,createEventSchema} from '../validation/event'

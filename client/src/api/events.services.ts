@@ -10,7 +10,7 @@ export const eventsService = {
     getAll: async (query: EventsQuery): Promise<PaginatedResponse<SocialEvent>> => {
         const cleanParams = Object.fromEntries(
             //filtering an array of params to delete empty queries
-            Object.entries(query).filter(([_, v]) => v != null)
+            Object.entries(query).filter(([, v]) => v != null)
         );
 
         const queryString = new URLSearchParams(cleanParams as Record<string,string>);

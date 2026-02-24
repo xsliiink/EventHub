@@ -17,18 +17,28 @@ export default function EventCard({event,currentUserId,isPending,onDelete,onEdit
 
     return(
         <div className="event-card">
-            {image && (
-                 <img 
-                    src={`/uploads/events/${image}`} 
-                    alt={title} 
-                    className='event-image'
-                />
-            )}
+            {/* Event Image */}
+            <div className="image-wrapper">
+                {image && (
+                    <img 
+                        src={`/uploads/events/${image}`} 
+                        alt={title} 
+                        className='event-image'
+                    />
+                )}
+            </div>
+
             <div className="event-info">
-                <h3>{title}</h3>
-                <p>{description}</p>
-                <p><strong>Date:</strong>{date}</p>
-                <p><strong>Location:</strong>{location}</p>
+                
+                <div className="event-text-content">
+                    <h3>{title}</h3>
+                    <p className='event-description'>{description}</p>
+                    <div className="event-meta">
+                        <p><strong>Date:</strong>📅 {date}</p>
+                        <p><strong>Location:</strong>📍 {location}</p>
+                    </div>
+                </div>
+                
                 
                 {hobbies && hobbies.length > 0 && (
                     <p><strong>Hobbies:</strong> {hobbies.join(', ')}</p>
@@ -36,8 +46,9 @@ export default function EventCard({event,currentUserId,isPending,onDelete,onEdit
 
                 {isOwner && (
                    <div className="event-actions">
+                    {/* Edit button */}
                       <button
-                      disabled = {isPending}
+                        disabled = {isPending}
                         className="action-btn edit-button"
                         onClick={() =>  {
                             console.log("Кнопка нажата, ивент:", event.id);
@@ -47,7 +58,7 @@ export default function EventCard({event,currentUserId,isPending,onDelete,onEdit
                         </button>
                         
                        <button
-                       disabled = {isPending}
+                        disabled = {isPending}
                         className = 'action-btn delete-button'
                         onClick={() => {
                             if(window.confirm('Are you sure you want to delete this event?')){

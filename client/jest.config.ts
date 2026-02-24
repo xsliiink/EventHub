@@ -1,7 +1,16 @@
-const {pathsToModuleNameMapper} = require('ts-jest');
-const { compilerOptions } = require('./tsconfig.app.json');
+// const {pathsToModuleNameMapper} = require('ts-jest');
+// const { compilerOptions } = require('./tsconfig.app.json');
 
-module.exports = {
+import type { Config } from 'jest';
+import { pathsToModuleNameMapper } from 'ts-jest';
+
+import tsconfig from './tsconfig.app.json';
+
+const { compilerOptions } = tsconfig;
+
+
+
+const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
 
@@ -25,5 +34,7 @@ module.exports = {
         tsconfig: './tsconfig.test.json',
       },
     ],
-    },
+  },
 };
+
+export default config;
