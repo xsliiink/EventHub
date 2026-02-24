@@ -45,23 +45,22 @@ Users can create their own events, attach images, select hobbies, edit or delete
 
 The project was refactored to follow clean backend architecture and stable API design.
 
-###⚙️ Backend
-*✅ **Modular Routing** — Routes, controllers, services and middlewares are fully separated  
-*✅ **Strict Type Safety** — No `any` types, shared frontend/backend contracts  
-*✅ **Zod Validation Layer** — All create/update payloads validated server-side  
-*✅ **Unified API Contract** — Database fields do not leak to frontend (`name → title`)  
-*✅ **Mapper Layer** — Dedicated DB → API mappers for consistent responses  
-*✅ **Async/Await DB Flow** — Predictable database operations  
-*✅ **Code Quality (DX)** — ESLint & Prettier integration  
+### ⚙️ Backend
+* ✅ **Modular Routing** — Routes, controllers, services and middlewares are fully separated
+* ✅ **Strict Type Safety** — No `any` types, shared frontend/backend contracts
+* ✅ **Zod Validation Layer** — All create/update payloads validated server-side
+* ✅ **Unified API Contract** — Database fields do not leak to frontend (`name` → `title`)
+* ✅ **Mapper Layer** — Dedicated DB → API mappers for consistent responses
+* ✅ **Async/Await DB Flow** — Predictable database operations
+* ✅ **Code Quality (DX)** — ESLint & Prettier integration
 
-###💻 Frontend
-*✅ **Feature-Based Structure** — Scalable organization by domain features (e.g., features/feed)
-*✅ **Optimistic UI Engine** — Instant feedback via TanStack Query with automated rollback
-*✅ **Centralized API Layer** — Decoupled service logic for maintainable network calls
-*✅ **Global State & Hooks** — Custom hooks for socket connections and state orchestration
-*✅ **Strict Linting** — Enforced zero-any policy and unused-vars protection via ESLint
-*✅ **Automated Seeding** — Custom script to generate 50+ realistic events for performance testing
-
+### 💻 Frontend
+* ✅ **Feature-Based Structure** — Scalable organization by domain features (e.g., `features/feed`)
+* ✅ **Optimistic UI Engine** — Instant feedback via TanStack Query with automated rollback
+* ✅ **Centralized API Layer** — Decoupled service logic for maintainable network calls
+* ✅ **Global State & Hooks** — Custom hooks for socket connections and state orchestration
+* ✅ **Strict Linting** — Enforced zero-any policy and unused-vars protection via ESLint
+* ✅ **Automated Seeding** — Custom script to generate 50+ realistic events for performance testing
 ---
 
 ## 🗃️ Database Structure
