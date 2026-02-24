@@ -1,20 +1,20 @@
 import type { Config } from 'jest';
 import { pathsToModuleNameMapper } from 'ts-jest';
 
-// Используем require, так как Node.js нативно понимает JSON
-const tsconfig = require('./tsconfig.app.json');
+import tsconfig from './tsconfig.app.json';
+
 const compilerOptions = tsconfig.compilerOptions;
 
 const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
 
-  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'], 
-  
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
+
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     ...pathsToModuleNameMapper(compilerOptions.paths, {
-      prefix: '<rootDir>/'
+      prefix: '<rootDir>/',
     }),
   },
 
