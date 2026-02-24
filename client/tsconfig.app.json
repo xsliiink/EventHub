@@ -29,8 +29,8 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
-    "resolveJsonModule": true,//allows to import json files
-    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   },
   "include": ["src"]
 }
