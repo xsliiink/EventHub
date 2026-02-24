@@ -1,34 +1,25 @@
-// const {pathsToModuleNameMapper} = require('ts-jest');
-// const { compilerOptions } = require('./tsconfig.app.json');
-
 import type { Config } from 'jest';
 import { pathsToModuleNameMapper } from 'ts-jest';
 
-import tsconfig from './tsconfig.app.json';
-
-const { compilerOptions } = tsconfig;
-
-
+// Используем require, так как Node.js нативно понимает JSON
+const tsconfig = require('./tsconfig.app.json');
+const compilerOptions = tsconfig.compilerOptions;
 
 const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
 
-
-  //using AfterEnv fot the correct work of testingLibrary
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'], 
-  
   
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    ...pathsToModuleNameMapper(compilerOptions.paths,{
+    ...pathsToModuleNameMapper(compilerOptions.paths, {
       prefix: '<rootDir>/'
     }),
   },
 
-
-    transform: {
-      '^.+\\.tsx?$': [
+  transform: {
+    '^.+\\.tsx?$': [
       'ts-jest',
       {
         tsconfig: './tsconfig.test.json',
