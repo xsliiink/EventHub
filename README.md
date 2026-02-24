@@ -45,22 +45,22 @@ Users can create their own events, attach images, select hobbies, edit or delete
 
 The project was refactored to follow clean backend architecture and stable API design.
 
-⚙️ Backend
-✅ **Modular Routing** — Routes, controllers, services and middlewares are fully separated  
-✅ **Strict Type Safety** — No `any` types, shared frontend/backend contracts  
-✅ **Zod Validation Layer** — All create/update payloads validated server-side  
-✅ **Unified API Contract** — Database fields do not leak to frontend (`name → title`)  
-✅ **Mapper Layer** — Dedicated DB → API mappers for consistent responses  
-✅ **Async/Await DB Flow** — Predictable database operations  
-✅ **Code Quality (DX)** — ESLint & Prettier integration  
+###⚙️ Backend
+*✅ **Modular Routing** — Routes, controllers, services and middlewares are fully separated  
+*✅ **Strict Type Safety** — No `any` types, shared frontend/backend contracts  
+*✅ **Zod Validation Layer** — All create/update payloads validated server-side  
+*✅ **Unified API Contract** — Database fields do not leak to frontend (`name → title`)  
+*✅ **Mapper Layer** — Dedicated DB → API mappers for consistent responses  
+*✅ **Async/Await DB Flow** — Predictable database operations  
+*✅ **Code Quality (DX)** — ESLint & Prettier integration  
 
-💻 Frontend
-✅ **Feature-Based Structure** — Scalable organization by domain features (e.g., features/feed)
-✅ **Optimistic UI Engine** — Instant feedback via TanStack Query with automated rollback
-✅ **Centralized API Layer** — Decoupled service logic for maintainable network calls
-✅ **Global State & Hooks** — Custom hooks for socket connections and state orchestration
-✅ **Strict Linting** — Enforced zero-any policy and unused-vars protection via ESLint
-✅ **Automated Seeding** — Custom script to generate 50+ realistic events for performance testing
+###💻 Frontend
+*✅ **Feature-Based Structure** — Scalable organization by domain features (e.g., features/feed)
+*✅ **Optimistic UI Engine** — Instant feedback via TanStack Query with automated rollback
+*✅ **Centralized API Layer** — Decoupled service logic for maintainable network calls
+*✅ **Global State & Hooks** — Custom hooks for socket connections and state orchestration
+*✅ **Strict Linting** — Enforced zero-any policy and unused-vars protection via ESLint
+*✅ **Automated Seeding** — Custom script to generate 50+ realistic events for performance testing
 
 ---
 
@@ -79,16 +79,24 @@ The project was refactored to follow clean backend architecture and stable API d
 
 ## 🚀 Features
 
-✅ **User Authentication** — Secure registration & login using JWT tokens
-✅ **Optimistic Event Management** — Create, update, and delete events with instant UI feedback
-✅ **Infinite Scrolling** — Smoothly browse through a large feed of community and official events
-✅ **Advanced Media Handling** — Image uploads for events and user avatars via Multer
-✅ **Smart Filtering** — Filter events by location and multiple hobby categories
-✅ **Real-time Synchronization** — Live updates and notifications powered by Socket.io
-✅ **Hobby Ecosystem** — Attach and manage multiple hobbies for every event
-✅ **Responsive Grid System** — Adaptive event cards designed for both desktop and mobile
-✅ **Automated Seeding** — One-command script to populate the app with 50+ realistic data points
-✅ **Ownership Protection** — Strict server-side checks for event modification and deletion
+### 🔐 Core & Auth
+* ✅ **User Authentication** — Secure registration & login using JWT tokens.
+* ✅ **Ownership Protection** — Strict server-side checks for event modification and deletion.
+
+### 📅 Event Management
+* ✅ **Optimistic UI** — Create, update, and delete events with instant feedback.
+* ✅ **Hobby Ecosystem** — Attach and manage multiple hobbies for every event.
+* ✅ **Advanced Media** — Image uploads for events and avatars via Multer.
+
+### 🌊 User Experience (UX)
+* ✅ **Infinite Scrolling** — Seamlessly browse through a large feed of events.
+* ✅ **Smart Filtering** — Filter by location and multiple hobby categories.
+* ✅ **Real-time Sync** — Live updates and notifications via Socket.io.
+* ✅ **Adaptive Grid** — Responsive design optimized for desktop and mobile.
+
+### 🛠 Developer Tools
+* ✅ **Automated Seeding** — One-command script to populate 50+ realistic events.
+
 ---
 
 ## 🧪 Testing
